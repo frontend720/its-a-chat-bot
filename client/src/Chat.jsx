@@ -1,8 +1,13 @@
 import React, { useContext, useState } from "react";
+import birds from "./assets/birds.mp4";
 import { VeniceContext } from "./VeniceContext";
 import { FaPlus } from "react-icons/fa6";
 import { IoSend, IoAdd } from "react-icons/io5";
+import { Provider } from "./context/Provider.jsx";
 import "./Chat.css";
+import WelcomeWidget from "./Components/WelcomeWidget.jsx";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function Chat() {
   const {
@@ -11,39 +16,50 @@ export default function Chat() {
     onImageChange,
     url,
     prompt,
-    onPromptChange,
+    onChatPromptChange,
     isImageLoading,
+    isWidgetVisible,
+    toggleImageVideo,
+    onImageVisibleChage,
+    chat_prompt,
+    onPromptChange,
+    chatCompletion,
+    chat,
   } = useContext(VeniceContext);
-
-  const array = [
-    {
-      name: "Chat",
-      icon: "fa-regular fa-comment-dots",
-      placeholder: "What's on your mind?",
-    },
-    {
-      name: "Video",
-      icon: "fa-solid fa-video",
-      placeholder: "Describe you video.",
-    },
-    {
-      name: "Image",
-      icon: "fa-regular fa-image",
-      placeholder: "Describe your image.",
-    },
-  ];
-  const [arrayState, setArrayState] = useState(0);
-
-  console.log(array[arrayState].name, array[arrayState].icon);
-
-  function changeType(e) {
-    e.preventDefault();
-    setArrayState((prev) => (prev + 1) % array.length);
-  }
+  const { array, arrayState, changeType } = useContext(Provider);
 
   console.log(video);
+  console.log(chat_prompt);
+  console.log(typeof chat)
   return (
     <div>
+      <div className="text-container">
+        {url !== null || (chat.length === 0 && <WelcomeWidget />)}
+        {/* <WelcomeWidget
+          isVisible={
+            isWidgetVisible ? { display: "none" } : { display: "block" }
+          }
+        /> */}
+        {chat?.map((msg, index) => (
+          <div
+            key={index}
+            className={`message-container ${
+              msg.role === "user" ? "user-style" : "ai-style"
+            } glass-card`}
+          >
+            <div style={{ color: "red !important" }} className="message-bubble">
+              <span className="label">
+                {msg.role === "user" ? "You:" : "AI:"}
+              </span>
+              <div className="markdown-content">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {msg.content}
+                </ReactMarkdown>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
       <form action="">
         <input
           type="file"
@@ -52,25 +68,21 @@ export default function Chat() {
           style={{ display: "none" }}
           onChange={onImageChange}
         />
-        {/* <button onClick={createImageRef}>Upload Image</button> */}
       </form>
       <div
-        style={{
-          position: "relative",
-          width: "90%",
-          margin: "0 auto",
-          paddingTop: 24,
-        }}
+        style={
+          !toggleImageVideo
+            ? {
+                position: "relative",
+                width: "90%",
+                margin: "0 auto",
+                paddingTop: 24,
+              }
+            : { display: "none" }
+        }
       >
-        <img
-          style={
-            video.length !== 0 ? { display: "none" } : { display: "block" }
-          }
-          className="src-image"
-          src={url}
-          width="100%"
-          alt=""
-        />
+        <img className="src-image" src={url} width="100%" />
+
         <div
           style={isImageLoading ? { display: "none" } : { display: "block" }}
           className="screen"
@@ -78,23 +90,29 @@ export default function Chat() {
           <label htmlFor="">Creating your masterpiece!</label>
         </div>
       </div>
-      <video
-        style={
-          video.length === 0
-            ? { display: "none" }
-            : { display: "block", paddingTop: 24 }
-        }
-        controls
-        width="100%"
-        src={video}
-      ></video>
+      <div>
+        <video
+          style={toggleImageVideo ? { display: "block" } : { display: "none" }}
+          controls
+          className={video === null ? "src-video-hidden" : "src-video"}
+          width="100%"
+          src={video}
+        ></video>
+        <button
+          className="toggle-image-video-button"
+          style={video !== null ? { marginLeft: "5%" } : { display: "none" }}
+          onClick={onImageVisibleChage}
+        >
+          {toggleImageVideo ? "View Reference" : "View Video"}
+        </button>
+      </div>
       <form action="">
         <div className="textarea-container">
           <textarea
             placeholder={array[arrayState].placeholder}
             name="prompt"
-            value={prompt}
-            onChange={onPromptChange}
+            value={chat_prompt}
+            onChange={onChatPromptChange}
             id=""
           ></textarea>
           <div className="button-container">
@@ -104,12 +122,15 @@ export default function Chat() {
               </label>
             </div>
             <div className="change-send-buttons">
+              <label className="model_name" htmlFor="">
+                {array[arrayState].model_name}
+              </label>
               <button
                 style={{
-                  background: "transparent",
                   color: "#e8e8e8",
                   border: "none",
                 }}
+                className="toggle-type-button"
                 onClick={changeType}
               >
                 <i
@@ -119,11 +140,11 @@ export default function Chat() {
               </button>
               <button
                 style={
-                  prompt.length === 0
+                  chat_prompt?.length === 0
                     ? { display: "none" }
                     : { display: "block" }
                 }
-                onClick={createQue}
+                onClick={chatCompletion}
                 className="form-button"
               >
                 <IoSend size="20px" />
@@ -131,7 +152,6 @@ export default function Chat() {
             </div>
           </div>
         </div>
-        {/* <button onClick={createQue}>Generate Video</button> */}
       </form>
     </div>
   );

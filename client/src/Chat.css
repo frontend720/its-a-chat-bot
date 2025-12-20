@@ -36,7 +36,7 @@ textarea:focus {
   background: #444444;
   border-radius: 25px;
   /* margin-bottom: 20px; */
-  position:fixed;
+  position: fixed;
   bottom: 0;
   margin: 24px auto;
   left: 50%;
@@ -58,7 +58,7 @@ textarea:focus {
 video {
   border-radius: 25px;
   width: 90%;
-  margin: 0px auto
+  margin: 0px auto;
 }
 
 .screen {
@@ -74,11 +74,9 @@ video {
   justify-content: center;
   color: white;
   filter: blur(5px);
-  backdrop-filter: blur(10px); 
-    -webkit-backdrop-filter: blur(10px); /* Safari Support */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* Safari Support */
 }
-
-
 
 .screen label {
   font-weight: bold;
@@ -86,8 +84,171 @@ video {
   z-index: 100; /* Ensure text is above the blur layer */
 }
 
-.change-send-buttons{
-    display: flex;
-    flex-direction: row;
-    align-items: center
+.change-send-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.model_name {
+  margin-right: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #e8e8e8;
+  font-family: "Roboto", sans-serif;
+}
+
+.toggle-type-button {
+  padding: 6px 10px;
+  background: #2d2d2d;
+  border-radius: 5px;
+}
+
+.src-video {
+  margin: 0px auto;
+  padding-top: 24px;
+  /* left: 50%; */
+  /* transform: translateX(-50%); */
+}
+
+.src-video-hidden {
+  display: none !important;
+}
+
+.text-container {
+  padding-bottom: 200px;
+  padding-top: 40px;
+}
+
+.toggle-image-video-button {
+  background: none;
+  border: none;
+  font-family: "Ubuntu", sans-serif;
+  color: #e8e8e8;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+}
+
+.label {
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.message-container {
+  display: flex;
+  width: 90%;
+  margin: 0px auto;
+}
+
+.message-container.user-style {
+  justify-content: flex-end !important;
+}
+
+.message-container.ai-style {
+  justify-content: flex-start !important;
+}
+
+/* User moves to the right */
+.user-style {
+  justify-content: flex-end;
+}
+
+/* AI stays on the left */
+.ai-style {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  display: flex;
+}
+
+.user-style .message-bubble {
+  /* background-color: #007bff; */
+  color: white;
+  border-bottom-right-radius: 0px;
+  padding: 8px;
+}
+
+.ai-style .message-bubble {
+  /* background-color: #e9e9eb; */
+  color: #333;
+  border-bottom-left-radius: 0px;
+  padding: 8px;
+}
+
+.label {
+  display: block;
+  font-size: 0.7rem;
+  margin-bottom: 4px;
+  opacity: 0.6;
+}
+
+.markdown-content p {
+  margin-bottom: 10px;
+  line-height: 1.5;
+  color: inherit; /* This makes sure AI text isn't invisible */
+}
+
+/* Fix for lists appearing inside bubbles */
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
+
+/* Basic styling for code blocks in the AI response */
+.markdown-content code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+
+.glass-card {
+  /* width: 240px; */
+  /* height: 360px; */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.135);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 20px 10px rgb(119, 119, 119);
+  position: relative;
+  overflow: hidden;
+  margin: 20px auto
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+}
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.8),
+    transparent,
+    rgba(255, 255, 255, 0.3)
+  );
 }

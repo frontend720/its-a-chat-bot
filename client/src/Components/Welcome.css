@@ -1,0 +1,49 @@
+.widget-form {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  margin: 24px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding-top: 40px
+}
+
+.widget-buttons {
+  /* padding: 6px; */
+  font-size: 18px;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 8px auto;
+  width: 100%;
+  /* background: #1e1e1e; */
+  background: #444441;
+  border: none;
+  color: #e8e8e8;
+  display: flex;
+  flex-direction: row;
+  align-items: center
+}
+
+.widget-start-type-buttons{
+    font-family: "Ubuntu", sans-serif;
+    font-weight: 300;
+    margin-left: 8px
+}
+
+.header-text{
+    font-family: "Ubuntu", sans-serif;
+    font-weight: 300;
+    font-size: 40px;
+    margin-bottom: 12px;
+    color: #e8e8e8;
+}
+
+.subtext{
+    font-size: 20px;
+    font-weight: 300;
+    font-family: "Ubuntu", sans-serif;
+    color: #cccccc;
+    margin: 20px auto;
+    line-height: 24px
+}
