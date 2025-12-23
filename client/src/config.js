@@ -14,5 +14,5 @@ const config = {
 
 const app = initializeApp(config)
 const storage = getStorage(app);
-
+console.log(storage)
 export {storage}

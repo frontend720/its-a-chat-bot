@@ -178,6 +178,10 @@ video {
 
 }
 
+.message-bubble-hidden{
+  display : none
+}
+
 .user-style .message-bubble {
   /* background-color: #007bff; */
   color: white;

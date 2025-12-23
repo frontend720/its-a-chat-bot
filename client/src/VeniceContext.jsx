@@ -14,14 +14,13 @@ import personas from "./persona.json";
 import moment from "moment";
 import { AvatarContext } from "./context/AvatarContext";
 const VeniceContext = createContext();
-import dayjs from "dayjs"
+import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
-dayjs.extend(relativeTime)
+dayjs.extend(relativeTime);
 
 function VeniceProvider({ children }) {
-
-  console.log(dayjs(Date()).fromNow())
+  console.log(dayjs(Date()).fromNow());
   //Providers start
   const { array, arrayState } = useContext(Provider);
   const { currentAvatar, isNSFWEnabled } = useContext(AvatarContext);
@@ -42,7 +41,7 @@ function VeniceProvider({ children }) {
   const [url, setUrl] = useState(null);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [tokenCount, setTokenCount] = useState(0);
-  
+
   const [totalTokens, setTotalTokens] = useState(() => {
     try {
       const savedTokens = localStorage.getItem("token_count");
@@ -58,7 +57,7 @@ function VeniceProvider({ children }) {
   }, [totalTokens]);
 
   const [chat_prompt, setChat_prompt] = useState("");
- 
+
   const [chat, setChat] = useState(() => {
     try {
       const savedChats = localStorage.getItem("chats");
@@ -109,6 +108,18 @@ function VeniceProvider({ children }) {
         setUrl(url);
         setIsWidgetVisible(true);
         setToggleImageVideo(false);
+        const response = {
+          role: "user",
+          content: [
+            {
+              type: "image_url",
+              image_url: {
+                url: url, // This must be the public download URL
+              },
+            },
+          ],
+        };
+        setChat((prev) => [...prev, response]);
       })
       .catch((error) => {
         console.log(error);
@@ -140,12 +151,14 @@ function VeniceProvider({ children }) {
       }),
     };
 
+    
     fetch("https://api.venice.ai/api/v1/video/queue", options)
-      .then((res) => res.json())
-      .then((res) => setResponse(res))
-      .catch((err) => console.error(err));
+    .then((res) => res.json())
+    .then((res) => setResponse(res))
+    .catch((err) => console.error(err));
     setIsImageLoading(false);
   }
+  console.log(url)
 
   function onChatPromptChange(e) {
     setChat_prompt(e.target.value);
@@ -186,11 +199,24 @@ function VeniceProvider({ children }) {
       const contentType = res.headers.get("content-type");
 
       if (contentType && contentType.includes("video")) {
-        // It's a binary video! Create a URL for it.
         const videoBlob = await res.blob();
         const videoUrl = URL.createObjectURL(videoBlob);
         console.log("Video processed! Download/View URL:", videoUrl);
         setVideo(videoUrl);
+        const response = {
+          role: "assistant",
+          timestamp: Date(),
+          content: [
+            {
+              type: "video_clip",
+              video_url: {
+                url: videoUrl, // This must be the public download URL
+              },
+            },
+          ],
+        };
+        // It's a binary video! Create a URL for it.
+        setChat((prev) => [...prev, response])
         setIsImageLoading(true);
         setToggleImageVideo(false);
         onImageVisibleChage();

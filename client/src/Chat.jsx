@@ -10,12 +10,12 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ChatScreen from "./Components/ChatScreen.jsx";
 import Header from "./Components/Header.jsx";
-import dayjs from "dayjs"
+import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import calendar from "dayjs/plugin/calendar"
+import calendar from "dayjs/plugin/calendar";
 import { AvatarContext } from "./context/AvatarContext.jsx";
 
-dayjs.extend(calendar)
+dayjs.extend(calendar);
 
 export default function Chat() {
   const {
@@ -39,7 +39,8 @@ export default function Chat() {
     totalTokens,
     pushNewChat,
   } = useContext(VeniceContext);
-  const {isNSFWEnabled} = useContext(AvatarContext)
+  const { isNSFWEnabled } = useContext(AvatarContext);
+  console.log(url);
   const { array, arrayState, changeType, onIsAvatarScreenVisible } =
     useContext(Provider);
 
@@ -111,7 +112,7 @@ export default function Chat() {
       el.style.transition = "color 0.5s ease-in-out"; // Smoothly morph between states
     }
   }, [chat]);
-
+  console.log(chat);
   return (
     <div style={{ paddingTop: 25 }}>
       <Header onMenuToggle={onIsAvatarScreenVisible} onNewChatClick={newChat} />
@@ -125,30 +126,72 @@ export default function Chat() {
         <div style={isChatLoading ? { display: "none" } : { display: "" }}>
           {url !== null || (chat.length === 0 && <WelcomeWidget />)}
         </div>
-        {chat?.map((msg, index) => (
-          <ChatScreen
-            key={index}
-            className={`message-container ${
-              msg.role === "user" ? "user-style" : "ai-style"
-            } glass-card`}
-            reference={index === chat.length - 1 ? scrollRef : null}
-            role={msg.role === "user" ? "You:" : "AI:"}
-            content={msg.content}
-            timestamp={dayjs(msg.timestamp).calendar()}
-            avatar={
-              msg.role === "assistant"
-                ? { width: 40, borderRadius: "50%" }
-                : { display: "none" }
-            }
-            timestampRole={
-              msg.role === "user" ? { display: "none" } : { display: "" }
-            }
-            roleStyle={
-              msg.role === "user" ? { display: "" } : { display: "none" }
-            }
-            avatarBorder={isNSFWEnabled ? "nsfw-border" : "border"}
-          />
-        ))}
+        {chat?.map((msg, index) => {
+          let displayContent = "";
+
+          if (typeof msg.content === "string") {
+            displayContent = msg.content;
+          } else if (Array.isArray(msg.content)) {
+            // Look for the "text" part in the array, otherwise default to empty string
+            const textPart = msg.content.find((part) => part.type === "text");
+            displayContent = textPart ? textPart.text : "";
+          }
+          const media = Array.isArray(msg.content)
+            ? msg.content
+                .filter(
+                  (part) =>
+                    part.type === "image_url" || part.type === "video_clip"
+                )
+                .map((item) => {
+                  if (item.type === "image_url")
+                    return { type: "image", url: item.image_url.url };
+                  if (item.type === "video_clip")
+                    return { type: "video", url: item.video_url.url };
+                  return null;
+                })
+            : null;
+          const videoUrls = media
+            ?.filter((m) => m.type === "video")
+            .map((m) => m.url);
+          return (
+            <ChatScreen
+              key={index}
+              className={`message-container ${
+                msg.role === "user" ? "user-style" : "ai-style"
+              } glass-card`}
+              reference={index === chat.length - 1 ? scrollRef : null}
+              role={msg.role === "user" ? "You:" : "AI:"}
+              content={displayContent}
+              timestamp={dayjs(msg.timestamp).calendar()}
+              image_ref={
+                Array.isArray(msg.content)
+                  ? msg.content
+                      .filter((part) => part.type === "image_url")
+                      .map((img) => img.image_url.url)
+                  : null
+              }
+              avatar={
+                msg.role === "assistant"
+                  ? { width: 40, borderRadius: "50%" }
+                  : { display: "none" }
+              }
+              timestampRole={
+                msg.role === "user" ? { display: "none" } : { display: "" }
+              }
+              roleStyle={
+                msg.role === "user" ? { display: "" } : { display: "none" }
+              }
+              avatarBorder={isNSFWEnabled ? "nsfw-border" : "border"}
+              isVisible={
+                msg.content || msg.image
+                  ? "message-bubble"
+                  : "message-bubble-hidden"
+              }
+              video={videoUrls}
+              video_display={video?.length}
+            />
+          );
+        })}
         <div />
         {isChatLoading && (
           <div className="message-container ai-style">
@@ -165,6 +208,8 @@ export default function Chat() {
           id="file-upload"
           style={{ display: "none" }}
           onChange={onImageChange}
+          video={video}
+          video_display={video}
         />
       </form>
       <div
@@ -179,7 +224,7 @@ export default function Chat() {
             : { display: "none" }
         }
       >
-        <img className="src-image" src={url} width="100%" />
+        {/* <img className="src-image" src={url} width="100%" /> */}
 
         <div
           style={isImageLoading ? { display: "none" } : { display: "block" }}
@@ -187,13 +232,13 @@ export default function Chat() {
         ></div>
       </div>
       <div>
-        <video
+        {/* <video
           style={toggleImageVideo ? { display: "block" } : { display: "none" }}
           controls
           className={video === null ? "src-video-hidden" : "src-video"}
           width="100%"
           src={video}
-        ></video>
+        ></video> */}
         <button
           className="toggle-image-video-button"
           style={video !== null ? { marginLeft: "5%" } : { display: "none" }}

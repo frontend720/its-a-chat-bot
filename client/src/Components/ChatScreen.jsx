@@ -15,21 +15,18 @@ export default function ChatScreen({
   image_url,
   toggleImageVideo,
   video,
-  isVisibleChange,
-  video_url,
-  video_style,
-  toggle_image_video_style,
-  toggle_video_image_style,
-  toggle_video,
-  screen,
+  video_display,
   timestamp,
   avatar,
   roleStyle,
   timestampRole,
-  avatarBorder
+  avatarBorder,
+  image_ref,
+  isVisible,
+  // video
 }) {
   const { currentAvatar } = useContext(AvatarContext);
-
+  console.log(typeof video_display);
   return (
     <>
       <div key={key} className={className} ref={reference}>
@@ -49,6 +46,12 @@ export default function ChatScreen({
                 {content}
               </ReactMarkdown>
             </div>
+            <img src={image_ref} width="100%" alt="" />
+            {video && video.length > 0 && (
+              <video controls src={video[0]} className="src-video">
+                Your browser does not support the video tag.
+              </video>
+            )}
             <small style={timestampRole} className="timestamp">
               {timestamp}
             </small>
