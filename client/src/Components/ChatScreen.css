@@ -1,0 +1,17 @@
+.src-video {
+  margin: 0px auto;
+  padding-top: 24px;
+  /* left: 50%; */
+  /* transform: translateX(-50%); */
+}
+
+.src-video-hidden {
+  display: none !important;
+}
+
+.timestamp{
+    text-align: right;
+    font-family: "Monospace", sans-serif;
+    color: #e8e8e88d;
+    margin-top: 14px
+}

@@ -1,14 +1,19 @@
 import { useState, useContext } from "react";
 import { VeniceContext } from "./VeniceContext";
+import { Provider } from "./context/Provider";
 import "./App.css";
 import Chat from "./Chat";
-import ChatScreen from "./Components/ChatScreen"
+import ChatScreen from "./Components/ChatScreen";
+import AvatarSelectionScreen from "./Components/AvatarSelectionScreen";
 
 function App() {
+  const { isAvatarScreenVisible } = useContext(Provider);
   return (
     <div className="App">
-      <Chat />
+      {!isAvatarScreenVisible ? <Chat /> : <AvatarSelectionScreen />}
+
       {/* <ChatScreen /> */}
+      {/* <AvatarSelectionScreen /> */}
     </div>
   );
 }

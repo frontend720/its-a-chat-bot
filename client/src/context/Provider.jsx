@@ -6,13 +6,18 @@ function ProviderContext({ children }) {
   
   const [arrayState, setArrayState] = useState(0);
   const [isPremium, setIsPremium] = useState(false)
+  const [isAvatarScreenVisible, setIsAvatarScreenVisible] = useState(false)
+
+  function onIsAvatarScreenVisible(){
+    setIsAvatarScreenVisible(prev => !prev)
+  }
 
   function premiumToggle(){
     setIsPremium((prev) => !prev);
   }
 
   function changeType(e) {
-    e.preventDefault();
+    // e.preventDefault();
     setArrayState((prev) => (prev + 1) % array.length);
   }
 
@@ -33,10 +38,11 @@ function ProviderContext({ children }) {
   const array = [
     {
       name: "Chat",
-      icon: "fa-regular fa-comment-dots",
+      icon: "fa-brands fa-x-twitter",
       placeholder: "What's on your mind?",
       model: isPremium ? "openai-gpt-oss-120b" : "venice-uncensored",
-      model_name: isPremium ? "gpt-oss" : "venice",
+      model_name: isPremium ? "gpt-oss" : "grok",
+      context_window: 232000,
       welcome_text:
         "I can help you brainstorm complex ideas, write clean code, or summarize long documents in seconds.",
     },
@@ -50,16 +56,16 @@ function ProviderContext({ children }) {
       model_name: isPremium ? "longcat" : "wan",
       welcome_text:
         "I can help you transform static ideas into cinematic motion—just describe a scene to begin.",
-    },
-    {
-      name: "Image",
-      icon: "fa-regular fa-image",
-      placeholder: "Describe your image.",
-      model: isPremium ? "nano-banana-pro" : "lustify-sdxl",
-      model_name: isPremium ? "nano-banana" : "lustify",
-      welcome_text:
-        "I can help you design stunning visuals, from photorealistic portraits to abstract concepts, with a single prompt.",
-    },
+    }
+    // {
+    //   name: "Image",
+    //   icon: "fa-regular fa-image",
+    //   placeholder: "Describe your image.",
+    //   model: isPremium ? "nano-banana-pro" : "lustify-sdxl",
+    //   model_name: isPremium ? "nano-banana" : "lustify",
+    //   welcome_text:
+    //     "I can help you design stunning visuals, from photorealistic portraits to abstract concepts, with a single prompt.",
+    // },
   ];
   return (
     <Provider.Provider
@@ -70,6 +76,8 @@ function ProviderContext({ children }) {
         textOption,
         imageOption,
         videoOption,
+        isAvatarScreenVisible,
+        onIsAvatarScreenVisible
       }}
     >
       {children}

@@ -21,14 +21,14 @@ export default function WelcomeWidget({isVisible}) {
             Let's {array[0].name}!
           </label>
         </button>
-        <button onClick={videoOption} className="widget-buttons">
+        {/* <button onClick={videoOption} className="widget-buttons">
           <i style={{ fontSize: 20 }} className={array[1].icon}></i>
           <label className="widget-start-type-buttons" htmlFor="create a video">
             Create a {array[2].name}
           </label>
-        </button>
+        </button> */}
         <button onClick={imageOption} className="widget-buttons">
-          <i style={{ fontSize: 20 }} className={array[2].icon}></i>
+          <i style={{ fontSize: 20 }} className={array[1].icon}></i>
           <label
             className="widget-start-type-buttons"
             htmlFor="create an image"

@@ -1,0 +1,76 @@
+.header {
+  position: fixed; /* Pins it to the viewport */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px; /* Control the overall edge-gap here */
+  width: 100%;
+  box-sizing: border-box;
+  height: 60px;
+  color: #e8e8e8b5;
+   background: #5d5d5a;
+}
+
+/* Force both sides to be exact mirrors */
+.menu-button,
+.new-chat-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 !important; /* Kill the ghost padding pushing the icon in */
+  margin: 0 !important;
+  min-width: 0; /* Allow them to be as small as possible */
+}
+
+/* Align the hamburger to the absolute left edge of its lane */
+.menu-button {
+  justify-content: flex-start;
+}
+
+/* Align the New button to the absolute right edge of its lane */
+.new-chat-container {
+  justify-content: flex-end;
+}
+
+/* The Nickname will now be perfectly centered between the two edges */
+.token_counter {
+  flex: 0 0 auto;
+  text-align: center;
+  font-family: "JetBrains Mono", monospace;
+  /* Ensure no margins are pushing the title */
+  margin: 0 10px;
+}
+
+/* Ensures the MUSE/Hamburger swap stays within its column */
+.menu-button {
+  position: relative;
+  min-height: 40px;
+}
+
+.title,
+.hamburger-icon {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* Professional easing */
+  position: absolute;
+}
+
+/* Visibility states */
+.fade-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.fade-out {
+  opacity: 0;
+  transform: translateY(10px) scale(0.8); /* Moves down and shrinks slightly */
+  pointer-events: none;
+}
+
+.hamburger-icon {
+  font-size: 24px;
+}

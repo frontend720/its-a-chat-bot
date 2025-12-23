@@ -3,11 +3,17 @@ import { createRoot } from "react-dom/client";
 import { VeniceProvider } from "./VeniceContext.jsx";
 import App from "./App.jsx";
 import { ProviderContext } from "./context/Provider.jsx";
+import { AvatarContextProvider } from "./context/AvatarContext.jsx";
+import { BrowserRouter as Router } from "react-router-dom";
 
 createRoot(document.getElementById("root")).render(
-  <ProviderContext>
-    <VeniceProvider>
-      <App />
-    </VeniceProvider>
-  </ProviderContext>
+  <Router>
+    <ProviderContext>
+      <AvatarContextProvider>
+        <VeniceProvider>
+          <App />
+        </VeniceProvider>
+      </AvatarContextProvider>
+    </ProviderContext>
+  </Router>
 );

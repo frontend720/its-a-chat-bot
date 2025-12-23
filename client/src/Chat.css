@@ -41,6 +41,7 @@ textarea:focus {
   margin: 24px auto;
   left: 50%;
   transform: translateX(-50%);
+  margin-bottom: 30px !important
 }
 
 .form-button {
@@ -53,10 +54,11 @@ textarea:focus {
 
 .src-image {
   border-radius: 25px;
+  margin-bottom: 20px
 }
 
 video {
-  border-radius: 25px;
+  /* border-radius: 25px; */
   width: 90%;
   margin: 0px auto;
 }
@@ -100,7 +102,7 @@ video {
 
 .toggle-type-button {
   padding: 6px 10px;
-  background: #2d2d2d;
+  background: #2f2f2f33;
   border-radius: 5px;
 }
 
@@ -120,6 +122,11 @@ video {
   padding-top: 40px;
 }
 
+.text-container-with-image{
+  padding-top: 40px;
+  padding-bottom: 20px
+}
+
 .toggle-image-video-button {
   background: none;
   border: none;
@@ -127,6 +134,7 @@ video {
   color: #e8e8e8;
   font-weight: 700;
   letter-spacing: 2.5px;
+  margin-bottom: 200px
 }
 
 .label {
@@ -136,8 +144,10 @@ video {
 
 .message-container {
   display: flex;
-  width: 90%;
+  max-width: 90%;
   margin: 0px auto;
+  flex-direction: row;
+  align-items: center;
 }
 
 .message-container.user-style {
@@ -159,7 +169,13 @@ video {
 }
 
 .message-bubble {
+ 
   display: flex;
+  flex-direction: row; 
+  align-items: center;
+  /* align-items: flex-start; */
+  gap: 12px;
+
 }
 
 .user-style .message-bubble {
@@ -171,22 +187,31 @@ video {
 
 .ai-style .message-bubble {
   /* background-color: #e9e9eb; */
-  color: #333;
+  color: #333 !important;
   border-bottom-left-radius: 0px;
   padding: 8px;
 }
 
+
+
 .label {
-  display: block;
-  font-size: 0.7rem;
-  margin-bottom: 4px;
-  opacity: 0.6;
+ flex-shrink: 0; /* Prevents "YOU:" from getting squished */
+  white-space: nowrap;
+  padding-top: 2px; /* Aligns label with the first line of text */
 }
 
 .markdown-content p {
-  margin-bottom: 10px;
-  line-height: 1.5;
-  color: inherit; /* This makes sure AI text isn't invisible */
+margin: 0; /* Removes extra spacing that might push text down */
+  width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.markdown-content{
+ flex-grow: 1;
+  min-width: 0; /* Critical for preventing text/code from pushing the card too wide */
+  color: #e8e8e8;
 }
 
 /* Fix for lists appearing inside bubbles */
@@ -198,12 +223,28 @@ video {
 
 /* Basic styling for code blocks in the AI response */
 .markdown-content code {
-  background: rgba(0, 0, 0, 0.1);
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-family: monospace;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+    display: inline-block;
+    white-space: pre-wrap;
+    word-break: break-word;
+    /* max-width: 25vw; */
+    padding-left: 0px !important;
+    margin-left: 0px !important;
+    text-indent: 0 !important;
 }
 
+.markdown-content pre {
+  white-space: pre-wrap;
+  word-break: break-all;      
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+code{
+  text-align: left
+}
 
 .glass-card {
   /* width: 240px; */
@@ -251,4 +292,145 @@ video {
     transparent,
     rgba(255, 255, 255, 0.3)
   );
+}
+
+.glass-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+}
+
+.label {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.create_video_label{
+   font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #e8e8e8
+}
+
+.message-bubble p, .markdown-content {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  font-size: 15px;
+  /* display: flex; */
+  
+}
+
+.thinking-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px; /* Small and compact */
+  height: 35px;
+  background-color: #e9e9eb; /* Match your AI bubble color */
+  border-radius: 12px;
+  border-bottom-left-radius: 0px;
+}
+
+/* The Dots Animation */
+.dot-flashing {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 5px;
+  background-color: #333; /* Match your AI text color */
+  color: #333;
+  animation: dot-flashing 1s infinite linear alternate;
+  animation-delay: 0.5s;
+}
+
+.dot-flashing::before, .dot-flashing::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+
+.dot-flashing::before {
+  left: -12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 5px;
+  background-color: #333;
+  color: #333;
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 0s;
+}
+
+.dot-flashing::after {
+  left: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 5px;
+  background-color: #333;
+  color: #333;
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 1s;
+}
+
+@keyframes dot-flashing {
+  0% { background-color: #333; }
+  50%, 100% { background-color: rgba(51, 51, 51, 0.2); }
+}
+
+.new-label{
+  font-family: "Ubuntu", sans-serif;
+  font-size: 16px
+}
+
+.title{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px
+}
+
+.token_counter{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px
+}
+
+.textarea-container {
+  background: rgba(255, 255, 255, 0.05); /* Very subtle white */
+  backdrop-filter: blur(12px); /* Softens the background video/content */
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1); /* The "glass" edge */
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 30px rgba(0, 0, 0, 0.1), /* Outer shadow for depth */
+    inset 0 0 10px rgba(255, 255, 255, 0.05); /* Inner glow */
+  transition: all 0.3s ease;
+  /* padding: 10px; */
+  margin: 10px;
+}
+
+/* Enhancing the focus state */
+.textarea-container:focus-within {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.border{
+  border: none
+}
+
+.nsfw-border{
+  border: 1px solid rgba(255, 179, 0, 0.8); /* Your base orange border */
+  
+  /* Layered box-shadow for a soft glow */
+  box-shadow: 
+    0 0 5px rgba(255, 119, 0, 0.4),  /* Inner soft glow */
+    0 0 15px rgba(255, 119, 0, 0.2), /* Outer spread */
+    inset 0 0 5px rgba(255, 119, 0, 0.2); /* Subtle inner glow */
+    
+  transition: box-shadow 0.3s ease-in-out;
 }

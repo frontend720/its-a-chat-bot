@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import birds from "./assets/birds.mp4";
 import { VeniceContext } from "./VeniceContext";
 import { FaPlus } from "react-icons/fa6";
@@ -8,6 +8,14 @@ import "./Chat.css";
 import WelcomeWidget from "./Components/WelcomeWidget.jsx";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import ChatScreen from "./Components/ChatScreen.jsx";
+import Header from "./Components/Header.jsx";
+import dayjs from "dayjs"
+import relativeTime from "dayjs/plugin/relativeTime";
+import calendar from "dayjs/plugin/calendar"
+import { AvatarContext } from "./context/AvatarContext.jsx";
+
+dayjs.extend(calendar)
 
 export default function Chat() {
   const {
@@ -25,40 +33,130 @@ export default function Chat() {
     onPromptChange,
     chatCompletion,
     chat,
+    isChatLoading,
+    setChat,
+    setTotalTokens,
+    totalTokens,
+    pushNewChat,
   } = useContext(VeniceContext);
-  const { array, arrayState, changeType } = useContext(Provider);
+  const {isNSFWEnabled} = useContext(AvatarContext)
+  const { array, arrayState, changeType, onIsAvatarScreenVisible } =
+    useContext(Provider);
 
-  console.log(video);
-  console.log(chat_prompt);
-  console.log(typeof chat)
+  const [modelToggle, setModelToggle] = useState(false);
+
+  function onModelChange(e) {
+    e.preventDefault();
+    setModelToggle((prev) => !prev);
+    changeType();
+  }
+
+  // console.log(video);
+  // console.log(chat_prompt);
+  // console.log(typeof url);
+
+  function newChat() {
+    setTotalTokens(0);
+    setChat([]);
+    pushNewChat();
+  }
+
+  let tokenRef = useRef(null);
+  let scrollRef = useRef(null);
+  let containerRef = useRef(null);
+
+  const [scrollButton, setScrollButton] = useState(false);
+
+  function scrollToBottom() {
+    scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    setScrollButton(false);
+  }
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+      const isAtBottom = scrollHeight - scrollTop <= clientHeight + 100;
+      if (isAtBottom) {
+        scrollRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+        setTimeout(() => {
+          scrollToBottom();
+        }, 0);
+      } else if (chat.length > 0) {
+        setTimeout(() => {
+          setScrollButton(true);
+        }, 0);
+      }
+    }
+  }, [chat, isChatLoading]);
+
+  const el = tokenRef.current;
+  // console.log(url)
+
+  useEffect(() => {
+    if (el) {
+      let statusColor;
+
+      if (totalTokens < 15000) {
+        statusColor = "#4ade80"; // Vibrant Green
+      } else if (totalTokens < 22000) {
+        statusColor = "#facc15"; // Warning Yellow
+      } else if (totalTokens < 25001) {
+        statusColor = "#ef4444"; // Danger Red
+      }
+
+      el.style.color = statusColor;
+      el.style.transition = "color 0.5s ease-in-out"; // Smoothly morph between states
+    }
+  }, [chat]);
+
   return (
-    <div>
-      <div className="text-container">
-        {url !== null || (chat.length === 0 && <WelcomeWidget />)}
-        {/* <WelcomeWidget
-          isVisible={
-            isWidgetVisible ? { display: "none" } : { display: "block" }
-          }
-        /> */}
+    <div style={{ paddingTop: 25 }}>
+      <Header onMenuToggle={onIsAvatarScreenVisible} onNewChatClick={newChat} />
+      <div
+        className={
+          url === null ? "text-container" : "text-container-with-image"
+        }
+        ref={containerRef}
+      >
+        {scrollButton && <button onClick={scrollToBottom}>New Message</button>}
+        <div style={isChatLoading ? { display: "none" } : { display: "" }}>
+          {url !== null || (chat.length === 0 && <WelcomeWidget />)}
+        </div>
         {chat?.map((msg, index) => (
-          <div
+          <ChatScreen
             key={index}
             className={`message-container ${
               msg.role === "user" ? "user-style" : "ai-style"
             } glass-card`}
-          >
-            <div style={{ color: "red !important" }} className="message-bubble">
-              <span className="label">
-                {msg.role === "user" ? "You:" : "AI:"}
-              </span>
-              <div className="markdown-content">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {msg.content}
-                </ReactMarkdown>
-              </div>
+            reference={index === chat.length - 1 ? scrollRef : null}
+            role={msg.role === "user" ? "You:" : "AI:"}
+            content={msg.content}
+            timestamp={dayjs(msg.timestamp).calendar()}
+            avatar={
+              msg.role === "assistant"
+                ? { width: 40, borderRadius: "50%" }
+                : { display: "none" }
+            }
+            timestampRole={
+              msg.role === "user" ? { display: "none" } : { display: "" }
+            }
+            roleStyle={
+              msg.role === "user" ? { display: "" } : { display: "none" }
+            }
+            avatarBorder={isNSFWEnabled ? "nsfw-border" : "border"}
+          />
+        ))}
+        <div />
+        {isChatLoading && (
+          <div className="message-container ai-style">
+            <div className="message-bubble thinking-bubble">
+              <div className="dot-flashing"></div>
             </div>
           </div>
-        ))}
+        )}
       </div>
       <form action="">
         <input
@@ -86,9 +184,7 @@ export default function Chat() {
         <div
           style={isImageLoading ? { display: "none" } : { display: "block" }}
           className="screen"
-        >
-          <label htmlFor="">Creating your masterpiece!</label>
-        </div>
+        ></div>
       </div>
       <div>
         <video
@@ -111,12 +207,15 @@ export default function Chat() {
           <textarea
             placeholder={array[arrayState].placeholder}
             name="prompt"
-            value={chat_prompt}
-            onChange={onChatPromptChange}
+            value={modelToggle ? prompt : chat_prompt}
+            onChange={modelToggle ? onPromptChange : onChatPromptChange}
             id=""
           ></textarea>
           <div className="button-container">
-            <div className="form-button">
+            <div
+              style={!modelToggle ? { opacity: 0 } : { opacity: 1 }}
+              className="form-button"
+            >
               <label htmlFor="file-upload">
                 <IoAdd size="20px" />
               </label>
@@ -131,7 +230,7 @@ export default function Chat() {
                   border: "none",
                 }}
                 className="toggle-type-button"
-                onClick={changeType}
+                onClick={onModelChange}
               >
                 <i
                   style={{ fontSize: 20 }}
@@ -139,12 +238,13 @@ export default function Chat() {
                 ></i>
               </button>
               <button
+                // disabled={totalTokens >= 25000 ? true : false}
                 style={
-                  chat_prompt?.length === 0
+                  chat_prompt?.length === 0 && prompt?.length === 0
                     ? { display: "none" }
                     : { display: "block" }
                 }
-                onClick={chatCompletion}
+                onClick={modelToggle ? createQue : chatCompletion}
                 className="form-button"
               >
                 <IoSend size="20px" />

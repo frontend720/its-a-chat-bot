@@ -1,0 +1,16 @@
+{
+  "short_name": "MuseChat",
+  "name": "Full Stack Portfolio Project",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#5d5d5a",
+  "orientation": "portrait",
+  "theme_color": "#5d5d5a",
+  "icons": [
+  {
+    "src": "/favico.png",
+    "type": "image/png",
+    "sizes": "512x512"
+  }
+]
+}

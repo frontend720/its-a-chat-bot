@@ -6,19 +6,33 @@ import React, {
   useRef,
 } from "react";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
-const VeniceContext = createContext();
 import { Provider } from "./context/Provider";
 import { storage } from "./config";
 import technicalDirectives from "./technical_directives.json";
+import personas from "./persona.json";
+import moment from "moment";
+import { AvatarContext } from "./context/AvatarContext";
+const VeniceContext = createContext();
+import dayjs from "dayjs"
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime)
 
 function VeniceProvider({ children }) {
+
+  console.log(dayjs(Date()).fromNow())
   //Providers start
   const { array, arrayState } = useContext(Provider);
-  //Providers end
+  const { currentAvatar, isNSFWEnabled } = useContext(AvatarContext);
 
-  console.log(array[0].model);
+  //Providers end
+  const backstories = !isNSFWEnabled
+    ? personas.personas[currentAvatar].backstory
+    : personas.personas[currentAvatar].nsfw_backstory;
+  const traits = !isNSFWEnabled
+    ? personas.personas[currentAvatar].personality_traits.map((trait) => trait)
+    : personas.personas[currentAvatar].nsfw_traits.map((trait) => trait);
 
   //State start
   const [response, setResponse] = useState({});
@@ -28,26 +42,61 @@ function VeniceProvider({ children }) {
   const [url, setUrl] = useState(null);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [tokenCount, setTokenCount] = useState(0);
-  const [totalTokens, setTotalTokens] = useState(0);
+  
+  const [totalTokens, setTotalTokens] = useState(() => {
+    try {
+      const savedTokens = localStorage.getItem("token_count");
+      return savedTokens ? JSON.parse(savedTokens) : 0;
+    } catch (error) {
+      console.log("No tokens have been used yet", error);
+      return 0;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("token_count", JSON.stringify(totalTokens));
+  }, [totalTokens]);
 
   const [chat_prompt, setChat_prompt] = useState("");
-  const [chat, setChat] = useState([]);
+ 
+  const [chat, setChat] = useState(() => {
+    try {
+      const savedChats = localStorage.getItem("chats");
+      return savedChats && savedChats.length > 0 ? JSON.parse(savedChats) : [];
+    } catch (error) {
+      console.log("No chats to retrieve", error);
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("chats", JSON.stringify(chat));
+    } catch (error) {
+      console.log(error);
+    }
+  }, [chat]);
+
+  console.log(typeof chat);
+
+  function pushNewChat(e) {
+    e.preventDefault();
+    setChats((prev) => [...prev, ...chat]);
+  }
+
+  // console.log(chats);
 
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
 
   const [toggleImageVideo, setToggleImageVideo] = useState(true);
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   function onImageVisibleChage() {
     setToggleImageVideo((prev) => !prev);
   }
   //State end
 
-  function widgetVisibilityToggle() {
-    setIsWidgetVisible((prev) => !prev);
-  }
   const imageRef = ref(storage, `images/${uuidv4()}`);
-
-  function refinePrompt() {}
 
   // Create reference image in firebase storage
   function createImageRef() {
@@ -98,56 +147,12 @@ function VeniceProvider({ children }) {
     setIsImageLoading(false);
   }
 
-  function chatCompletion(e) {
-    e.preventDefault();
-    const userMessage = {
-      role: "user",
-      content: chat_prompt,
-    };
-    const options = {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_VENICE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: array[0].model,
-        frequency_penalty: 1.5,
-        max_completion_tokens: 500,
-        max_temp: 1.25,
-        min_temp: 0.75,
-        reasoning_effort: "medium",
-        top_k: 30,
-        messages: [
-          {
-            role: "system",
-            content: technicalDirectives.venice_prompt_engineering,
-          },
-          ...chat,
-          userMessage,
-        ],
-      }),
-    };
-    fetch("https://api.venice.ai/api/v1/chat/completions", options)
-      .then((res) => res.json())
-      .then((res) => {
-        const assistantMessage = {
-          role: "assistant",
-          content: res.choices[0].message.content,
-        };
-        setChat((prev) => [...prev, userMessage, assistantMessage]);
-        setChat_prompt(null);
-        setTokenCount(res.usage.total_tokens);
-      })
-      .catch((error) => console.log(error));
-  }
-
   function onChatPromptChange(e) {
     setChat_prompt(e.target.value);
   }
 
   // console.log(prompt, url);
-  console.log(chat);
+  // console.log(chat);,
 
   useEffect(() => {
     setTotalTokens((prev) => prev + tokenCount);
@@ -214,6 +219,64 @@ function VeniceProvider({ children }) {
     }
   }
 
+  const system_instructions = `
+  System Prompt: ${personas.personas[currentAvatar].system_prompt} 
+   Nickname: ${personas.personas[currentAvatar].nickname} 
+   Instructions: ${technicalDirectives.instructions} 
+   Backstory: ${backstories} 
+   Your character traits are as follow: ${traits.join(
+     ", "
+   )}. You speak with a ${personas.personas[currentAvatar].speech_style}`;
+
+  function chatCompletion(e) {
+    e.preventDefault();
+    const userMessage = {
+      role: "user",
+      content: chat_prompt,
+    };
+    const options = {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_VENICE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        // model: array[0].model,
+        model: "grok-41-fast",
+        frequency_penalty: 1.5,
+        max_completion_tokens: 1000,
+        max_temp: 1.0,
+        min_temp: 0.75,
+        reasoning_effort: "medium",
+        top_k: 30,
+        messages: [
+          {
+            role: "system",
+            content: system_instructions,
+          },
+          ...chat,
+          userMessage,
+        ],
+      }),
+    };
+    fetch("https://api.venice.ai/api/v1/chat/completions", options)
+      .then((res) => res.json())
+      .then((res) => {
+        const assistantMessage = {
+          role: "assistant",
+          content: res.choices[0].message.content,
+          timestamp: Date(),
+        };
+        setChat((prev) => [...prev, userMessage, assistantMessage]);
+        setChat_prompt(null);
+        setTokenCount(res.usage.total_tokens);
+        setIsChatLoading(false);
+      })
+      .catch((error) => console.log(error));
+    setIsChatLoading(true);
+    setChat_prompt("");
+  }
+
   // Handle Changes start
   function onPromptChange(e) {
     setPrompt(e.target.value);
@@ -260,6 +323,10 @@ function VeniceProvider({ children }) {
         chat_prompt,
         onChatPromptChange,
         chat,
+        isChatLoading,
+        totalTokens,
+        setChat,
+        setTotalTokens,
       }}
     >
       {children}
