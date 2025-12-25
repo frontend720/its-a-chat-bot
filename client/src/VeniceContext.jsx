@@ -324,8 +324,8 @@ function VeniceProvider({ children }) {
     }
   }
 
-  console.log(chat_prompt)
-  console.log(prompt)
+  const DEFAULT_NEGATIVE_PROMPT = "lowres, bad anatomy, bad hands, text, error, missing fingers, cropped, worst quality, low quality, watermark, blurry";
+
 
   async function generateImage(e) {
     e.preventDefault();
@@ -344,7 +344,7 @@ function VeniceProvider({ children }) {
       height: 1024,
       hide_watermark: true,
       lora_strength: 50,
-      // negative_prompt: "Clouds, Rain, Snow",
+      negative_prompt: DEFAULT_NEGATIVE_PROMPT,
       return_binary: false,
       variants: 1,
       safe_mode: true,
@@ -383,12 +383,6 @@ function VeniceProvider({ children }) {
       console.error("Error details:", error.response?.data || error.message);
     }
   }
-
-  console.log(import.meta.env.VITE_VENICE_API_KEY);
-
-  console.log(moderationError);
-
-  console.log(isChatLoading);
 
   // Handle Changes start
   function onPromptChange(e) {

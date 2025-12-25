@@ -1,4 +1,4 @@
-import { createContext, useState, useRef, useEffect } from "react";
+import { createContext, useState } from "react";
 
 const Provider = createContext();
 
@@ -50,15 +50,6 @@ function ProviderContext({ children }) {
         model_name: "Venice",
         context_window: 0,
     }
-    // {
-    //   name: "Image",
-    //   icon: "fa-regular fa-image",
-    //   placeholder: "Describe your image.",
-    //   model: isPremium ? "nano-banana-pro" : "lustify-sdxl",
-    //   model_name: isPremium ? "nano-banana" : "lustify",
-    //   welcome_text:
-    //     "I can help you design stunning visuals, from photorealistic portraits to abstract concepts, with a single prompt.",
-    // },
   ];
   return (
     <Provider.Provider

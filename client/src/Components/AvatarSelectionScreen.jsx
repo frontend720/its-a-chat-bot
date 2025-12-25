@@ -22,7 +22,7 @@ export default function App() {
 
   const widthRef = useRef(null);
   const contextWidth = (totalTokens / array[arrayState].context_window) * 100;
-  console.log(`#17b978${Math.round(totalTokens / array[arrayState].context_window)}`)
+  
   useEffect(() => {
     if (contextWidth <= 50) {
       widthRef.current.style.background = `#17b978`;

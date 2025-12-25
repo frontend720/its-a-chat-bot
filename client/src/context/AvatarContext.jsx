@@ -38,8 +38,6 @@ function AvatarContextProvider({ children }) {
     }
   });
 
-//   console.log(isNSFWEnabled);
-
   useEffect(() => {
     try {
       localStorage.setItem("isNSFW", JSON.stringify(isNSFWEnabled));

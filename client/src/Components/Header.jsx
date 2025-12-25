@@ -41,11 +41,8 @@ function Header({ onNewChatClick, onMenuToggle, tokens }) {
     return () => clearTimeout(timeoutId);
   }, [isHamburgerVisible]);
 
-  console.log(chat)
-
   return (
     <header className="header">
-      {/* Left Column (flex: 1) */}
       <div onClick={onMenuToggle} className="menu-button">
         <label
           className={`title ${isHamburgerVisible ? "fade-out" : "fade-in"}`}
@@ -62,7 +59,6 @@ function Header({ onNewChatClick, onMenuToggle, tokens }) {
       <label
         ref={tokenRef}
         className="token_counter"
-        // style={totalTokens === 0 ? { display: "none" } : {}}
       >
         {isNSFWEnabled ? (
           <i style={{ marginRight: 10 , color: "orange"}} className="fa-solid fa-fire"></i>
@@ -71,8 +67,6 @@ function Header({ onNewChatClick, onMenuToggle, tokens }) {
         )}
         {personas.personas[currentAvatar].nickname}
       </label>
-
-      {/* Right Column (flex: 1) */}
       <div className="new-chat-container" style={chat.length === 0 ? { opacity: 0, pointerEvents: "none" } : { opacity: 1 }} onClick={onNewChatClick}>
         <i
           style={{ fontSize: 16, marginRight: 8 }}
