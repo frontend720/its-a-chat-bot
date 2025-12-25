@@ -63,6 +63,10 @@ video {
   margin: 0px auto;
 }
 
+textarea{
+  resize: none
+}
+
 .screen {
   position: absolute;
   top: 0;
