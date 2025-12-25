@@ -347,7 +347,7 @@ function VeniceProvider({ children }) {
       negative_prompt: DEFAULT_NEGATIVE_PROMPT,
       return_binary: false,
       variants: 1,
-      safe_mode: true,
+      safe_mode: false,
       seed: 10,
       steps: 50,
       style_preset: "Analog Film",
