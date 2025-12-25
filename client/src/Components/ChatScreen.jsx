@@ -2,7 +2,7 @@ import { useContext } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import personas from "../persona.json";
-import "./Chatscreen.css";
+import "./ChatScreen.css";
 import { AvatarContext } from "../context/AvatarContext";
 import { Provider } from "../context/Provider";
 import { ChatSegment } from "../Styles/ChatComponentStyles";
