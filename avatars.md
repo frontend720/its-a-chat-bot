@@ -1,0 +1,9 @@
+RICO_Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/account_image%2FGemini_Generated_Image_wr6m83wr6m83wr6m.png?alt=media&token=33dd6e88-a468-48eb-8f52-ef26d195b4aa
+DARIUS_Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/account_image%2FGemini_Generated_Image_yjz3uyyjz3uyyjz3.png?alt=media&token=e1dd51cd-7ca0-423c-983c-c65de7a1af69
+MARCUS_Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/account_image%2FGemini_Generated_Image_m0soerm0soerm0so.png?alt=media&token=3471404a-526c-4b59-8d4e-73811c33b458
+TARIO-Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/muse_chat_personas%2FTario.png?alt=media&token=2f02989e-3390-49df-8331-10bb2512bb54
+MALIK_Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/muse_chat_personas%2Fmalik.png?alt=media&token=73a2fa4e-d6f4-4fe5-88c0-f097b13fde00
+NIKOLAI_Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/muse_chat_personas%2FIMG_7194.png?alt=media&token=fdd87f1f-d3e1-440b-8cff-65a40456589a
+MATEO_Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/muse_chat_personas%2FIMG_7193.png?alt=media&token=997ce012-3409-40bd-9655-b23d637602c2
+QUAN_Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/muse_chat_personas%2FIMG_7192.png?alt=media&token=b392e397-6aa8-4f49-bad0-6414696b1ab9
+TARIQ_Animation_Avatar=https://firebasestorage.googleapis.com/v0/b/bate-mates.appspot.com/o/muse_chat_personas%2FIMG_7191.png?alt=media&token=4e532838-6ac6-4f6f-af53-00f7feeb5b8a

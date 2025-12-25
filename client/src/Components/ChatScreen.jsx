@@ -5,6 +5,7 @@ import personas from "../persona.json";
 import "./Chatscreen.css";
 import { AvatarContext } from "../context/AvatarContext";
 import { Provider } from "../context/Provider";
+import { ChatSegment } from "../Styles/ChatComponentStyles";
 
 export default function ChatScreen({
   key,
@@ -12,21 +13,18 @@ export default function ChatScreen({
   content,
   reference,
   className,
-  image_url,
-  toggleImageVideo,
   video,
-  video_display,
   timestamp,
   avatar,
   roleStyle,
   timestampRole,
   avatarBorder,
   image_ref,
-  isVisible,
-  // video
+  image_url
 }) {
   const { currentAvatar } = useContext(AvatarContext);
-  console.log(typeof video_display);
+  
+
   return (
     <>
       <div key={key} className={className} ref={reference}>
@@ -42,16 +40,19 @@ export default function ChatScreen({
           />
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div className="markdown-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+                p: ChatSegment
+              }}>
                 {content}
               </ReactMarkdown>
             </div>
-            <img src={image_ref} width="100%" alt="" />
+            <img style={{borderRadius: 25}} src={image_ref} width="100%" alt="" />
             {video && video.length > 0 && (
               <video controls src={video[0]} className="src-video">
                 Your browser does not support the video tag.
               </video>
             )}
+            <img style={{borderRadius: 15}} src={image_url} width="100%" alt="" />
             <small style={timestampRole} className="timestamp">
               {timestamp}
             </small>

@@ -49,6 +49,7 @@ export default function App() {
       <div className="avatar-card">
         <img
           style={{ width: 100, borderRadius: "50%" }}
+          className={isNSFWEnabled ? "nsfw-border" : "water-ripple"}
           src={persona.personas[currentAvatar].avatar}
           width="100%"
         />

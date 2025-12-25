@@ -12,12 +12,10 @@ function ProviderContext({ children }) {
     setIsAvatarScreenVisible(prev => !prev)
   }
 
-  function premiumToggle(){
-    setIsPremium((prev) => !prev);
-  }
+
 
   function changeType(e) {
-    // e.preventDefault();
+    e.preventDefault();
     setArrayState((prev) => (prev + 1) % array.length);
   }
 
@@ -31,10 +29,7 @@ function ProviderContext({ children }) {
     setArrayState(1);
   }
 
-  function videoOption(e) {
-    e.preventDefault();
-    setArrayState(2);
-  }
+
   const array = [
     {
       name: "Chat",
@@ -42,20 +37,18 @@ function ProviderContext({ children }) {
       placeholder: "What's on your mind?",
       model: isPremium ? "openai-gpt-oss-120b" : "venice-uncensored",
       model_name: isPremium ? "gpt-oss" : "grok",
-      context_window: 232000,
+      context_window: 2000000,
       welcome_text:
         "I can help you brainstorm complex ideas, write clean code, or summarize long documents in seconds.",
     },
     {
-      name: "Video",
-      icon: "fa-solid fa-video",
-      placeholder: "Describe you video.",
-      model: isPremium
-        ? "longcat-distilled-image-to-video"
-        : "wan-2.6-image-to-video",
-      model_name: isPremium ? "longcat" : "wan",
+      name: "Image",
+      icon: "fa-regular fa-image",
+      placeholder: "Describe your image.",
       welcome_text:
-        "I can help you transform static ideas into cinematic motion—just describe a scene to begin.",
+        "I can help you design stunning visuals, from photorealistic portraits to abstract concepts, with a single prompt.",
+        model_name: "Venice",
+        context_window: 0,
     }
     // {
     //   name: "Image",
@@ -72,12 +65,11 @@ function ProviderContext({ children }) {
       value={{
         array,
         arrayState,
-        changeType,
         textOption,
         imageOption,
-        videoOption,
         isAvatarScreenVisible,
-        onIsAvatarScreenVisible
+        onIsAvatarScreenVisible,
+        changeType
       }}
     >
       {children}

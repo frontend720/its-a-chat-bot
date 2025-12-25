@@ -11,9 +11,10 @@ import remarkGfm from "remark-gfm";
 import ChatScreen from "./Components/ChatScreen.jsx";
 import Header from "./Components/Header.jsx";
 import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import gsap from "gsap";
 import calendar from "dayjs/plugin/calendar";
 import { AvatarContext } from "./context/AvatarContext.jsx";
+import GeneratingLabel from "./Components/GeneratingLabel.jsx";
 
 dayjs.extend(calendar);
 
@@ -31,16 +32,18 @@ export default function Chat() {
     onImageVisibleChage,
     chat_prompt,
     onPromptChange,
-    chatCompletion,
     chat,
     isChatLoading,
     setChat,
     setTotalTokens,
     totalTokens,
     pushNewChat,
+    isVideoGenerating,
+    newRequest,
+    generateImage,
   } = useContext(VeniceContext);
   const { isNSFWEnabled } = useContext(AvatarContext);
-  console.log(url);
+ 
   const { array, arrayState, changeType, onIsAvatarScreenVisible } =
     useContext(Provider);
 
@@ -51,10 +54,6 @@ export default function Chat() {
     setModelToggle((prev) => !prev);
     changeType();
   }
-
-  // console.log(video);
-  // console.log(chat_prompt);
-  // console.log(typeof url);
 
   function newChat() {
     setTotalTokens(0);
@@ -112,7 +111,46 @@ export default function Chat() {
       el.style.transition = "color 0.5s ease-in-out"; // Smoothly morph between states
     }
   }, [chat]);
-  console.log(chat);
+
+  let animationRef = useRef(null);
+  function animate() {
+    gsap.to(animationRef.current, {
+      rotation: 360,
+      duration: 3,
+      repeat: Infinity,
+      opacity: 1,
+    });
+  }
+
+  const progressBarRef = useRef(null);
+
+  function progressBarAnimation() {
+    gsap.to(progressBarRef.current, {
+      width: "100%",
+      duration: 3,
+      repeat: Infinity,
+      display: "block",
+      background: "#a7ff83",
+    });
+  }
+
+  const labelRef = useRef(null);
+
+  function progressBarLabel() {
+    gsap.to(labelRef.current, {
+      opacity: 0.5,
+      ease: "strong.inOut",
+      duration: 1.5,
+      repeat: Infinity,
+    });
+  }
+
+  useEffect(() => {
+    animate();
+    progressBarAnimation();
+    progressBarLabel();
+  }, []);
+
   return (
     <div style={{ paddingTop: 25 }}>
       <Header onMenuToggle={onIsAvatarScreenVisible} onNewChatClick={newChat} />
@@ -124,18 +162,27 @@ export default function Chat() {
       >
         {scrollButton && <button onClick={scrollToBottom}>New Message</button>}
         <div style={isChatLoading ? { display: "none" } : { display: "" }}>
-          {url !== null || (chat.length === 0 && <WelcomeWidget />)}
+          {isVideoGenerating || (chat.length === 0 && <WelcomeWidget />)}
         </div>
         {chat?.map((msg, index) => {
+          const isBase64Image =
+            typeof msg.content === "string" &&
+            msg.content.startsWith("data:image");
+
+          // 2. Define how to extract text (Display nothing if it's an image string)
           let displayContent = "";
 
-          if (typeof msg.content === "string") {
+          if (isBase64Image) {
+            displayContent = ""; // Keep text empty for images
+          } else if (typeof msg.content === "string") {
             displayContent = msg.content;
           } else if (Array.isArray(msg.content)) {
-            // Look for the "text" part in the array, otherwise default to empty string
             const textPart = msg.content.find((part) => part.type === "text");
             displayContent = textPart ? textPart.text : "";
           }
+
+          // 3. Define the image source
+          const displayImageUrl = isBase64Image ? msg.content : msg.image_url;
           const media = Array.isArray(msg.content)
             ? msg.content
                 .filter(
@@ -162,6 +209,7 @@ export default function Chat() {
               reference={index === chat.length - 1 ? scrollRef : null}
               role={msg.role === "user" ? "You:" : "AI:"}
               content={displayContent}
+              image_url={displayImageUrl}
               timestamp={dayjs(msg.timestamp).calendar()}
               image_ref={
                 Array.isArray(msg.content)
@@ -181,7 +229,7 @@ export default function Chat() {
               roleStyle={
                 msg.role === "user" ? { display: "" } : { display: "none" }
               }
-              avatarBorder={isNSFWEnabled ? "nsfw-border" : "border"}
+              avatarBorder={isNSFWEnabled ? "nsfw-border" : "water-ripple"}
               isVisible={
                 msg.content || msg.image
                   ? "message-bubble"
@@ -193,13 +241,30 @@ export default function Chat() {
           );
         })}
         <div />
-        {isChatLoading && (
-          <div className="message-container ai-style">
-            <div className="message-bubble thinking-bubble">
-              <div className="dot-flashing"></div>
+        <>
+          {isChatLoading && (
+            <div className="message-container ai-style">
+              <div className="message-bubble thinking-bubble">
+                <div className="dot-flashing"></div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+          {/* <div className="progress-container">
+            <label ref={labelRef} className="progress-bar-label" htmlFor="">
+              Creating your masterpiece!
+            </label>
+            <div className="animation-container">
+              <div
+                ref={progressBarRef}
+                className="video-generation-progress-bar"
+              />
+              <h1 ref={animationRef}>
+                <GiFairyWand color="#e8e8e8" />
+              </h1>
+            </div>
+          </div> */}
+          <GeneratingLabel isVisible={isVideoGenerating} />
+        </>
       </div>
       <form action="">
         <input
@@ -207,6 +272,7 @@ export default function Chat() {
           name="imageUrl"
           id="file-upload"
           style={{ display: "none" }}
+          disabled
           onChange={onImageChange}
           video={video}
           video_display={video}
@@ -224,41 +290,25 @@ export default function Chat() {
             : { display: "none" }
         }
       >
-        {/* <img className="src-image" src={url} width="100%" /> */}
-
         <div
           style={isImageLoading ? { display: "none" } : { display: "block" }}
           className="screen"
         ></div>
       </div>
-      <div>
-        {/* <video
-          style={toggleImageVideo ? { display: "block" } : { display: "none" }}
-          controls
-          className={video === null ? "src-video-hidden" : "src-video"}
-          width="100%"
-          src={video}
-        ></video> */}
-        <button
-          className="toggle-image-video-button"
-          style={video !== null ? { marginLeft: "5%" } : { display: "none" }}
-          onClick={onImageVisibleChage}
-        >
-          {toggleImageVideo ? "View Reference" : "View Video"}
-        </button>
-      </div>
+
       <form action="">
         <div className="textarea-container">
           <textarea
             placeholder={array[arrayState].placeholder}
             name="prompt"
-            value={modelToggle ? prompt : chat_prompt}
-            onChange={modelToggle ? onPromptChange : onChatPromptChange}
+            value={chat_prompt}
+            onChange={onChatPromptChange}
             id=""
           ></textarea>
           <div className="button-container">
             <div
-              style={!modelToggle ? { opacity: 0 } : { opacity: 1 }}
+              // style={!modelToggle ? { opacity: 0 } : { opacity: 1 }}
+              style={{ opacity: 0 }}
               className="form-button"
             >
               <label htmlFor="file-upload">
@@ -275,7 +325,7 @@ export default function Chat() {
                   border: "none",
                 }}
                 className="toggle-type-button"
-                onClick={onModelChange}
+                onClick={changeType}
               >
                 <i
                   style={{ fontSize: 20 }}
@@ -283,13 +333,13 @@ export default function Chat() {
                 ></i>
               </button>
               <button
-                // disabled={totalTokens >= 25000 ? true : false}
+                disabled={totalTokens >= 1500000 ? true : false}
                 style={
                   chat_prompt?.length === 0 && prompt?.length === 0
                     ? { display: "none" }
                     : { display: "block" }
                 }
-                onClick={modelToggle ? createQue : chatCompletion}
+                onClick={arrayState === 0 ?  newRequest : generateImage}
                 className="form-button"
               >
                 <IoSend size="20px" />

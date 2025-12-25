@@ -7,7 +7,7 @@ import "./Header.css";
 
 function Header({ onNewChatClick, onMenuToggle, tokens }) {
   const { currentAvatar, isNSFWEnabled } = useContext(AvatarContext);
-  const { totalTokens } = useContext(VeniceContext);
+  const { totalTokens, chat } = useContext(VeniceContext);
   const [isHamburgerVisible, setIsHamburgerVisible] = useState(false);
   const tokenRef = useRef(null);
 
@@ -41,6 +41,8 @@ function Header({ onNewChatClick, onMenuToggle, tokens }) {
     return () => clearTimeout(timeoutId);
   }, [isHamburgerVisible]);
 
+  console.log(chat)
+
   return (
     <header className="header">
       {/* Left Column (flex: 1) */}
@@ -71,7 +73,7 @@ function Header({ onNewChatClick, onMenuToggle, tokens }) {
       </label>
 
       {/* Right Column (flex: 1) */}
-      <div className="new-chat-container" style={totalTokens === 0 ? {opacity: 0} : {display: ""}} onClick={onNewChatClick}>
+      <div className="new-chat-container" style={chat.length === 0 ? { opacity: 0, pointerEvents: "none" } : { opacity: 1 }} onClick={onNewChatClick}>
         <i
           style={{ fontSize: 16, marginRight: 8 }}
           className="fa-solid fa-pen-to-square"

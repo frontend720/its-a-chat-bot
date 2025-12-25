@@ -1,26 +1,26 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useContext,
-  useRef,
-} from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { v4 as uuidv4 } from "uuid";
 import { Provider } from "./context/Provider";
 import { storage } from "./config";
 import technicalDirectives from "./technical_directives.json";
 import personas from "./persona.json";
-import moment from "moment";
 import { AvatarContext } from "./context/AvatarContext";
 const VeniceContext = createContext();
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import OpenAI from "openai";
+import axios from "axios";
 
 dayjs.extend(relativeTime);
 
 function VeniceProvider({ children }) {
-  console.log(dayjs(Date()).fromNow());
+  const VITE_API_KEY = import.meta.env.VITE_GROK_API_KEY;
+  const client = new OpenAI({
+    apiKey: VITE_API_KEY,
+    dangerouslyAllowBrowser: true,
+    baseURL: "https://api.x.ai/v1",
+  });
   //Providers start
   const { array, arrayState } = useContext(Provider);
   const { currentAvatar, isNSFWEnabled } = useContext(AvatarContext);
@@ -32,10 +32,21 @@ function VeniceProvider({ children }) {
   const traits = !isNSFWEnabled
     ? personas.personas[currentAvatar].personality_traits.map((trait) => trait)
     : personas.personas[currentAvatar].nsfw_traits.map((trait) => trait);
+  const systemPrompt = !isNSFWEnabled
+    ? personas.personas[currentAvatar].system_prompt
+    : personas.personas[currentAvatar].nsfw_system_prompt;
 
   //State start
   const [response, setResponse] = useState({});
-  const [video, setVideo] = useState(null);
+  const [video, setVideo] = useState(() => {
+    try {
+      const savedVideoUrl = localStorage.getItem("video");
+      return savedVideoUrl ? JSON.parse(savedVideoUrl) : null;
+    } catch (error) {
+      console.log("No video url saved", error);
+      return null;
+    }
+  });
   const [prompt, setPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [url, setUrl] = useState(null);
@@ -76,20 +87,16 @@ function VeniceProvider({ children }) {
     }
   }, [chat]);
 
-  console.log(typeof chat);
-
   function pushNewChat(e) {
     e.preventDefault();
     setChats((prev) => [...prev, ...chat]);
   }
 
-  // console.log(chats);
-
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
-
   const [toggleImageVideo, setToggleImageVideo] = useState(true);
   const [isChatLoading, setIsChatLoading] = useState(false);
-
+  const [moderationError, setModerationError] = useState(null);
+  const [imagePrompt, setImagePrompt] = useState(null);
   function onImageVisibleChage() {
     setToggleImageVideo((prev) => !prev);
   }
@@ -139,7 +146,6 @@ function VeniceProvider({ children }) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // model: "kling-2.5-turbo-pro-image-to-video",
         model: array[1].model,
         prompt: prompt + ". " + technicalDirectives.directions,
         duration: "10s",
@@ -151,31 +157,24 @@ function VeniceProvider({ children }) {
       }),
     };
 
-    
     fetch("https://api.venice.ai/api/v1/video/queue", options)
-    .then((res) => res.json())
-    .then((res) => setResponse(res))
-    .catch((err) => console.error(err));
+      .then((res) => res.json())
+      .then((res) => setResponse(res))
+      .catch((err) => console.error(err));
     setIsImageLoading(false);
   }
-  console.log(url)
 
   function onChatPromptChange(e) {
     setChat_prompt(e.target.value);
   }
 
-  // console.log(prompt, url);
-  // console.log(chat);,
-
   useEffect(() => {
     setTotalTokens((prev) => prev + tokenCount);
   }, [tokenCount]);
 
-  console.log(totalTokens);
+  const [isVideoGenerating, setIsVideoGenerating] = useState(false);
 
   async function retrieveVideo() {
-    // if (!response?.queue_id) return;
-
     const options = {
       method: "POST",
       headers: {
@@ -200,25 +199,31 @@ function VeniceProvider({ children }) {
 
       if (contentType && contentType.includes("video")) {
         const videoBlob = await res.blob();
-        const videoUrl = URL.createObjectURL(videoBlob);
-        console.log("Video processed! Download/View URL:", videoUrl);
-        setVideo(videoUrl);
-        const response = {
-          role: "assistant",
-          timestamp: Date(),
-          content: [
-            {
-              type: "video_clip",
-              video_url: {
-                url: videoUrl, // This must be the public download URL
+        const videoFilRef = ref(storage, `chat_videos/${uuidv4()}.mp4`);
+        try {
+          const snapshot = await uploadBytes(videoFilRef, videoBlob);
+          const permanentUrl = await getDownloadURL(snapshot.ref);
+          setVideo(permanentUrl);
+          localStorage.setItem("video", JSON.stringify(permanentUrl));
+          const assistantVideoResponse = {
+            role: "assistant",
+            timestamp: Date(),
+            content: [
+              {
+                type: "video_clip",
+                video_url: {
+                  url: permanentUrl,
+                },
               },
-            },
-          ],
-        };
-        // It's a binary video! Create a URL for it.
-        setChat((prev) => [...prev, response])
-        setIsImageLoading(true);
-        setToggleImageVideo(false);
+            ],
+          };
+          setChat((prev) => [...prev, assistantVideoResponse]);
+          setIsVideoGenerating(false);
+          setIsImageLoading(true);
+          setToggleImageVideo(false);
+        } catch (error) {
+          console.log("Firebase vidoe upload failed" + error);
+        }
         onImageVisibleChage();
         return;
       }
@@ -227,8 +232,9 @@ function VeniceProvider({ children }) {
 
       if (data.status === "PROCESSING") {
         console.log("Still processing... retrying in 5s");
+        setIsVideoGenerating(true);
         await new Promise((resolve) => setTimeout(resolve, 5000));
-        return retrieveVideo(); // Use recursion or your loop
+        return retrieveVideo();
       }
 
       if (data.status === "COMPLETED") {
@@ -245,63 +251,144 @@ function VeniceProvider({ children }) {
     }
   }
 
+  useEffect(() => {
+    if (video) {
+      localStorage.setItem("video", JSON.stringify(video));
+    }
+  }, [video]);
+
   const system_instructions = `
-  System Prompt: ${personas.personas[currentAvatar].system_prompt} 
-   Nickname: ${personas.personas[currentAvatar].nickname} 
+  System Prompt: ${systemPrompt} 
+   Nickname: ${personas.personas[currentAvatar].nickname}
+   This characters sexual orientation is ${
+     personas.personas[currentAvatar].sexual_orientation
+   } 
    Instructions: ${technicalDirectives.instructions} 
    Backstory: ${backstories} 
    Your character traits are as follow: ${traits.join(
      ", "
    )}. You speak with a ${personas.personas[currentAvatar].speech_style}`;
 
-  function chatCompletion(e) {
+  async function newRequest(e) {
     e.preventDefault();
+    setIsChatLoading(true);
+    setChat_prompt("");
     const userMessage = {
       role: "user",
       content: chat_prompt,
     };
-    const options = {
-      method: "POST",
+   const sanitizedHistory = chat.map((msg) => {
+    let content = msg.content;
+
+    // Check if the content is a Base64 image string
+    // We replace it with text so we don't send megabytes of data to Grok
+    if (typeof content === "string" && content.startsWith("data:image")) {
+      content = "[Assistant generated an image]";
+    }
+
+    return {
+      role: msg.role,
+      // The API requires content to be a non-empty string
+      content: content || " ", 
+    };
+  });
+    const request = await client.chat.completions.create({
+      model: "grok-4-latest",
+
+      messages: [
+        {
+          role: "system",
+          content: system_instructions,
+        },
+        ...sanitizedHistory,
+        userMessage,
+      ],
+    });
+    try {
+      if (!request.choices || !request.choices[0]) {
+        console.error("API Error Response:", request);
+        setIsChatLoading(false);
+        return; // Stop the function from crashing
+      }
+      const assistantMessage = {
+        role: "assistant",
+        content: request.choices[0].message.content,
+        timestamp: Date(),
+      };
+      setChat((prev) => [...prev, userMessage, assistantMessage]);
+      setChat_prompt(null);
+      setTokenCount(request.usage.total_tokens);
+      setIsChatLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  console.log(chat_prompt)
+  console.log(prompt)
+
+  async function generateImage(e) {
+    e.preventDefault();
+    setIsVideoGenerating(true)
+    const userMessage = {
+      role: "user",
+      content: chat_prompt,
+    };
+
+    const data = {
+      model: "lustify-sdxl",
+      prompt: `${chat_prompt}, highly detailed, 8k, masterpiece, raw photo, f/1.8, 85mm, sharp focus`,
+      cfg_scale: 6.25,
+      embed_exif_metadata: false,
+      format: "webp",
+      height: 1024,
+      hide_watermark: true,
+      lora_strength: 50,
+      // negative_prompt: "Clouds, Rain, Snow",
+      return_binary: false,
+      variants: 1,
+      safe_mode: true,
+      seed: 10,
+      steps: 50,
+      style_preset: "Analog Film",
+      aspect_ratio: "1:1",
+      resolution: "1K",
+      enable_web_search: false,
+      width: 1024
+    };
+
+    const config = {
       headers: {
         Authorization: `Bearer ${import.meta.env.VITE_VENICE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        // model: array[0].model,
-        model: "grok-41-fast",
-        frequency_penalty: 1.5,
-        max_completion_tokens: 1000,
-        max_temp: 1.0,
-        min_temp: 0.75,
-        reasoning_effort: "medium",
-        top_k: 30,
-        messages: [
-          {
-            role: "system",
-            content: system_instructions,
-          },
-          ...chat,
-          userMessage,
-        ],
-      }),
     };
-    fetch("https://api.venice.ai/api/v1/chat/completions", options)
-      .then((res) => res.json())
-      .then((res) => {
-        const assistantMessage = {
-          role: "assistant",
-          content: res.choices[0].message.content,
-          timestamp: Date(),
-        };
-        setChat((prev) => [...prev, userMessage, assistantMessage]);
-        setChat_prompt(null);
-        setTokenCount(res.usage.total_tokens);
-        setIsChatLoading(false);
-      })
-      .catch((error) => console.log(error));
-    setIsChatLoading(true);
-    setChat_prompt("");
+
+    try {
+      const response = await axios.post(
+        "https://api.venice.ai/api/v1/image/generate",
+        data,
+        config
+      );
+      const assistantMessage = {
+        role: "assistant",
+        content: `data:image/webp;base64,${response.data.images[0]}`,
+        isImage: true,
+        timestamp: Date(),
+      };
+      setChat((prev) => [...prev, userMessage, assistantMessage]);
+      console.log(response.data)
+      setIsVideoGenerating(false)
+    } catch (error) {
+      console.error("Error details:", error.response?.data || error.message);
+    }
   }
+
+  console.log(import.meta.env.VITE_VENICE_API_KEY);
+
+  console.log(moderationError);
+
+  console.log(isChatLoading);
 
   // Handle Changes start
   function onPromptChange(e) {
@@ -312,18 +399,6 @@ function VeniceProvider({ children }) {
     setImageUrl(e.target.files[0]);
   }
   // Handle Changes end
-
-  const newRequests = async (model) => {
-    if (model === "longcat-distilled-image-to-video") {
-      return "longcat-distilled-image-to-video";
-    }
-    if (model === "nano-banana-pro") {
-      return "nano-banana-pro";
-    }
-    if (model === "openai-gpt-oss-120b") {
-      return "openai-gpt-oss-120b";
-    }
-  };
 
   useEffect(() => {
     retrieveVideo();
@@ -345,7 +420,6 @@ function VeniceProvider({ children }) {
         isWidgetVisible,
         toggleImageVideo,
         onImageVisibleChage,
-        chatCompletion,
         chat_prompt,
         onChatPromptChange,
         chat,
@@ -353,6 +427,9 @@ function VeniceProvider({ children }) {
         totalTokens,
         setChat,
         setTotalTokens,
+        isVideoGenerating,
+        newRequest,
+        generateImage,
       }}
     >
       {children}
