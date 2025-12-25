@@ -43,7 +43,7 @@ export default function Chat() {
     generateImage,
   } = useContext(VeniceContext);
   const { isNSFWEnabled } = useContext(AvatarContext);
- 
+
   const { array, arrayState, changeType, onIsAvatarScreenVisible } =
     useContext(Provider);
 
@@ -249,20 +249,7 @@ export default function Chat() {
               </div>
             </div>
           )}
-          {/* <div className="progress-container">
-            <label ref={labelRef} className="progress-bar-label" htmlFor="">
-              Creating your masterpiece!
-            </label>
-            <div className="animation-container">
-              <div
-                ref={progressBarRef}
-                className="video-generation-progress-bar"
-              />
-              <h1 ref={animationRef}>
-                <GiFairyWand color="#e8e8e8" />
-              </h1>
-            </div>
-          </div> */}
+
           <GeneratingLabel isVisible={isVideoGenerating} />
         </>
       </div>
@@ -296,7 +283,19 @@ export default function Chat() {
         ></div>
       </div>
 
-      <form action="">
+      <form
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            if (arrayState === 0) {
+              newRequest(e);
+            } else {
+              generateImage(e);
+            }
+          }
+        }}
+        action=""
+      >
         <div className="textarea-container">
           <textarea
             placeholder={array[arrayState].placeholder}
@@ -306,11 +305,7 @@ export default function Chat() {
             id=""
           ></textarea>
           <div className="button-container">
-            <div
-              // style={!modelToggle ? { opacity: 0 } : { opacity: 1 }}
-              style={{ opacity: 0 }}
-              className="form-button"
-            >
+            <div style={{ opacity: 0 }} className="form-button">
               <label htmlFor="file-upload">
                 <IoAdd size="20px" />
               </label>
@@ -339,7 +334,7 @@ export default function Chat() {
                     ? { display: "none" }
                     : { display: "block" }
                 }
-                onClick={arrayState === 0 ?  newRequest : generateImage}
+                onClick={arrayState === 0 ? newRequest : generateImage}
                 className="form-button"
               >
                 <IoSend size="20px" />

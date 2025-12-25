@@ -265,6 +265,9 @@ function VeniceProvider({ children }) {
    } 
    Instructions: ${technicalDirectives.instructions} 
    Backstory: ${backstories} 
+   **QUIRKS** (MANDATORY: Weave 1-2 per response to blend SFW backstory/job/hobbies with NSFW traits organically): ${
+     personas.personas[currentAvatar].quirks
+   }
    Your character traits are as follow: ${traits.join(
      ", "
    )}. You speak with a ${personas.personas[currentAvatar].speech_style}`;
@@ -277,23 +280,23 @@ function VeniceProvider({ children }) {
       role: "user",
       content: chat_prompt,
     };
-   const sanitizedHistory = chat.map((msg) => {
-    let content = msg.content;
+    const sanitizedHistory = chat.map((msg) => {
+      let content = msg.content;
 
-    // Check if the content is a Base64 image string
-    // We replace it with text so we don't send megabytes of data to Grok
-    if (typeof content === "string" && content.startsWith("data:image")) {
-      content = "[Assistant generated an image]";
-    }
+      // Check if the content is a Base64 image string
+      // We replace it with text so we don't send megabytes of data to Grok
+      if (typeof content === "string" && content.startsWith("data:image")) {
+        content = "[Assistant generated an image]";
+      }
 
-    return {
-      role: msg.role,
-      // The API requires content to be a non-empty string
-      content: content || " ", 
-    };
-  });
+      return {
+        role: msg.role,
+        // The API requires content to be a non-empty string
+        content: content || " ",
+      };
+    });
     const request = await client.chat.completions.create({
-      model: "grok-4-latest",
+      model: "grok-4-1-fast-reasoning",
 
       messages: [
         {
@@ -324,12 +327,13 @@ function VeniceProvider({ children }) {
     }
   }
 
-  const DEFAULT_NEGATIVE_PROMPT = "lowres, bad anatomy, bad hands, text, error, missing fingers, cropped, worst quality, low quality, watermark, blurry";
-
+  const DEFAULT_NEGATIVE_PROMPT =
+    "lowres, bad anatomy, bad hands, text, error, missing fingers, cropped, worst quality, low quality, watermark, blurry";
 
   async function generateImage(e) {
+    setChat_prompt("")
     e.preventDefault();
-    setIsVideoGenerating(true)
+    setIsVideoGenerating(true);
     const userMessage = {
       role: "user",
       content: chat_prompt,
@@ -354,7 +358,7 @@ function VeniceProvider({ children }) {
       aspect_ratio: "1:1",
       resolution: "1K",
       enable_web_search: false,
-      width: 1024
+      width: 1024,
     };
 
     const config = {
@@ -377,8 +381,8 @@ function VeniceProvider({ children }) {
         timestamp: Date(),
       };
       setChat((prev) => [...prev, userMessage, assistantMessage]);
-      console.log(response.data)
-      setIsVideoGenerating(false)
+      console.log(response.data);
+      setIsVideoGenerating(false);
     } catch (error) {
       console.error("Error details:", error.response?.data || error.message);
     }
