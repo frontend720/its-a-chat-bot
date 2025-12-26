@@ -52,6 +52,7 @@ export default function App() {
           className={isNSFWEnabled ? "nsfw-border" : "water-ripple"}
           src={persona.personas[currentAvatar].avatar}
           width="100%"
+          alt={persona.personas[currentAvatar]?.alt}
         />
         <label className="name" htmlFor="">
           {persona.personas[currentAvatar].name}

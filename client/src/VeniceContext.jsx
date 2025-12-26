@@ -297,7 +297,6 @@ function VeniceProvider({ children }) {
     });
     const request = await client.chat.completions.create({
       model: "grok-4-1-fast-reasoning",
-
       messages: [
         {
           role: "system",
@@ -306,6 +305,7 @@ function VeniceProvider({ children }) {
         ...sanitizedHistory,
         userMessage,
       ],
+
     });
     try {
       if (!request.choices || !request.choices[0]) {
