@@ -15,6 +15,7 @@ import gsap from "gsap";
 import calendar from "dayjs/plugin/calendar";
 import { AvatarContext } from "./context/AvatarContext.jsx";
 import GeneratingLabel from "./Components/GeneratingLabel.jsx";
+import personas from "./persona.json";
 
 dayjs.extend(calendar);
 
@@ -42,8 +43,8 @@ export default function Chat() {
     newRequest,
     generateImage,
   } = useContext(VeniceContext);
-  const { isNSFWEnabled } = useContext(AvatarContext);
-
+  const { isNSFWEnabled, currentAvatar, isHamburgerVisible } = useContext(AvatarContext);
+  console.log(chat);
   const { array, arrayState, changeType, onIsAvatarScreenVisible } =
     useContext(Provider);
 
@@ -151,6 +152,23 @@ export default function Chat() {
     progressBarLabel();
   }, []);
 
+  let personaNotifier = useRef(null);
+
+  useEffect(() => {
+    gsap.to(personaNotifier.current, {
+      opacity: 0.75,
+      color: "#e8e8e8",
+      duration: 1,
+    });
+    const animationTimeout = setTimeout(() => {
+      gsap.to(personaNotifier.current, {
+        opacity: 0,
+        duration: 2,
+      });
+    }, 3500);
+    () => clearTimeout(animationTimeout);
+  }, [isHamburgerVisible]);
+
   return (
     <div style={{ paddingTop: 25 }}>
       <Header onMenuToggle={onIsAvatarScreenVisible} onNewChatClick={newChat} />
@@ -237,10 +255,14 @@ export default function Chat() {
               }
               video={videoUrls}
               video_display={video?.length}
+              avatar_url={msg?.avatar}
             />
           );
         })}
         <div />
+        <small ref={personaNotifier} className="current-persona-notification">
+          Current persona {personas.personas[currentAvatar].nickname}
+        </small>
         <>
           {isChatLoading && (
             <div className="message-container ai-style">

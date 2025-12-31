@@ -36,7 +36,7 @@ function VeniceProvider({ children }) {
     : personas.personas[currentAvatar].nsfw_system_prompt;
 
   //State start
-  const [video, ________] = useState(() => {
+  const [video] = useState(() => {
     try {
       const savedVideoUrl = localStorage.getItem("video");
       return savedVideoUrl ? JSON.parse(savedVideoUrl) : null;
@@ -48,9 +48,15 @@ function VeniceProvider({ children }) {
   const [prompt, setPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [url, setUrl] = useState(null);
-  const [isImageLoading, _________________] = useState(true);
+  const [isImageLoading] = useState(true);
   const [tokenCount, setTokenCount] = useState(0);
+  const [isWidgetVisible, setIsWidgetVisible] = useState(false);
+  const [toggleImageVideo, setToggleImageVideo] = useState(true);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [isVideoGenerating, setIsVideoGenerating] = useState(false);
+  const [chat_prompt, setChat_prompt] = useState("");
 
+  // Localstorage state
   const [totalTokens, setTotalTokens] = useState(() => {
     try {
       const savedTokens = localStorage.getItem("token_count");
@@ -66,8 +72,6 @@ function VeniceProvider({ children }) {
   }, [totalTokens]);
 
   console.log(totalTokens);
-
-  const [chat_prompt, setChat_prompt] = useState("");
 
   const [chat, setChat] = useState(() => {
     try {
@@ -86,18 +90,17 @@ function VeniceProvider({ children }) {
       console.log(error);
     }
   }, [chat]);
+  // End localstorage state
 
-  const [isWidgetVisible, setIsWidgetVisible] = useState(false);
-  const [toggleImageVideo, setToggleImageVideo] = useState(true);
-  const [isChatLoading, setIsChatLoading] = useState(false);
-  function onImageVisibleChage() {
-    setToggleImageVideo((prev) => !prev);
-  }
   //State end
 
   const imageRef = ref(storage, `images/${uuidv4()}`);
 
   // Create reference image in firebase storage
+
+
+  // Requests
+
   function createImageRef() {
     if (!imageUrl) return;
     uploadBytes(imageRef, imageUrl)
@@ -114,7 +117,7 @@ function VeniceProvider({ children }) {
             {
               type: "image_url",
               image_url: {
-                url: url, // This must be the public download URL
+                url: url,
               },
             },
           ],
@@ -130,11 +133,13 @@ function VeniceProvider({ children }) {
     createImageRef();
   }, [imageUrl]);
 
+  function tokenCounter(){
+
+  }
   useEffect(() => {
+    
     setTotalTokens((prev) => prev + tokenCount);
   }, [tokenCount]);
-
-  const [isVideoGenerating, setIsVideoGenerating] = useState(false);
 
   useEffect(() => {
     if (video) {
@@ -143,19 +148,20 @@ function VeniceProvider({ children }) {
   }, [video]);
 
   const system_instructions = `
-  System Prompt: ${systemPrompt} 
-   Nickname: ${personas.personas[currentAvatar].nickname}
-   This characters sexual orientation is ${
-     personas.personas[currentAvatar].sexual_orientation
-   } 
-   Instructions: ${technicalDirectives.instructions} 
-   Backstory: ${backstories} 
-   **QUIRKS** (MANDATORY: Weave 1or 2 imto the chat to blend SFW backstory/job/hobbies with NSFW traits organically): ${
-     personas.personas[currentAvatar].quirks
-   }
-   Your character traits are as follow: ${traits.join(
-     ", "
-   )}. You speak with a natural ${
+System Prompt: ${systemPrompt} 
+Before EVERY response, **internally verify** the CURRENT ACTIVE PERSONA from the latest provided JSON (id, name, nickname, traits, speech_style, backstory, etc.). User may **SWITCH PERSONAS mid-conversation**—**immediately adapt** to the new one **seamlessly** (no OOC comments). Stay **100% immersed**: use exact speech_style, traits, quirks; reference SFW backstory only. If unclear, default to last JSON.
+Nickname: ${personas.personas[currentAvatar].nickname}
+This characters sexual orientation is ${
+    personas.personas[currentAvatar].sexual_orientation
+  } 
+Instructions: ${technicalDirectives.instructions} 
+Backstory: ${backstories} 
+**QUIRKS** (MANDATORY: Weave 1or 2 imto the chat to blend SFW backstory/job/hobbies with NSFW traits organically): ${
+    personas.personas[currentAvatar].quirks
+  }
+Your character traits are as follow: ${traits.join(
+    ", "
+  )}. You speak with a natural ${
     personas.personas[currentAvatar].speech_style
   }. use slang sparingly, don't lean into stereotypes. You are currently in ${
     isNSFWEnabled
@@ -174,15 +180,13 @@ function VeniceProvider({ children }) {
     const sanitizedHistory = chat.map((msg) => {
       let content = msg.content;
 
-      // Check if the content is a Base64 image string
-      // We replace it with text so we don't send megabytes of data to Grok
+      // I need to check to see if the content is a Base64 image string
       if (typeof content === "string" && content.startsWith("data:image")) {
         content = "[Assistant generated an image]";
       }
 
       return {
         role: msg.role,
-        // The API requires content to be a non-empty string
         content: content || " ",
       };
     });
@@ -207,6 +211,7 @@ function VeniceProvider({ children }) {
         role: "assistant",
         content: request.choices[0].message.content,
         timestamp: Date(),
+        avatar: personas.personas[currentAvatar].avatar
       };
       setChat((prev) => [...prev, userMessage, assistantMessage]);
       setChat_prompt(null);
@@ -219,6 +224,8 @@ function VeniceProvider({ children }) {
 
   const DEFAULT_NEGATIVE_PROMPT =
     "lowres, bad anatomy, bad hands, text, error, missing fingers, cropped, worst quality, low quality, watermark, blurry";
+
+  // Generate an image
 
   async function generateImage(e) {
     setChat_prompt("");
@@ -269,6 +276,7 @@ function VeniceProvider({ children }) {
         content: `data:image/webp;base64,${response.data.images[0]}`,
         isImage: true,
         timestamp: Date(),
+        avatar: personas.personas[currentAvatar].avatar
       };
       setChat((prev) => [...prev, userMessage, assistantMessage]);
       console.log(response.data);
@@ -280,6 +288,8 @@ function VeniceProvider({ children }) {
     }
   }
 
+  // End requests
+
   // Handle Changes start
   function onPromptChange(e) {
     setPrompt(e.target.value);
@@ -288,11 +298,15 @@ function VeniceProvider({ children }) {
   function onImageChange(e) {
     setImageUrl(e.target.files[0]);
   }
-  // Handle Changes end
+
+  function onImageVisibleChage() {
+    setToggleImageVideo((prev) => !prev);
+  }
 
   function onChatPromptChange(e) {
     setChat_prompt(e.target.value);
   }
+  // Handle Changes end
 
   return (
     <VeniceContext.Provider

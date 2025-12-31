@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import persona from "../persona.json";
 
 import { AvatarContext } from "../context/AvatarContext";
@@ -6,6 +6,7 @@ import { VeniceContext } from "../VeniceContext";
 import { Provider } from "../context/Provider";
 import gsap from "gsap";
 import "./AvatarSelectionScreen.css";
+import personas from "../persona.json";
 
 export default function App() {
   const {
@@ -22,7 +23,7 @@ export default function App() {
 
   const widthRef = useRef(null);
   const contextWidth = (totalTokens / array[arrayState].context_window) * 100;
-  
+
   useEffect(() => {
     if (contextWidth <= 50) {
       widthRef.current.style.background = `#17b978`;
@@ -32,6 +33,70 @@ export default function App() {
       widthRef.current.style.background = "#f85959";
     }
   }, [totalTokens]);
+
+  const [permissionStatus, setPermissionStatus] = useState(
+    Notification.permission
+  );
+
+  // 1. Request Permission (Must be a button click)
+  function askPermission() {
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notifications");
+      return;
+    }
+
+    Notification.requestPermission().then((permission) => {
+      setPermissionStatus(permission);
+      if (permission === "granted") {
+        console.log("Permission granted!");
+      } else {
+        console.log("Permission denied :(");
+      }
+    });
+  }
+
+  const [permissionStatuses, setPermissionStatuses] = useState("denied")
+
+  useEffect(() => {
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notifications");
+      return;
+    }
+
+    Notification.requestPermission().then((permission) => {
+      setPermissionStatus(permission);
+      if (permission === "granted") {
+        setPermissionStatuses("Permission granted!");
+      } else {
+        console.log("Permission denied :(");
+      }
+    });
+  }, []);
+
+  // 2. Fire Notification (Must be granted first)
+  function sendNotification(txt) {
+    if (permissionStatus === "granted") {
+      const notification = new Notification(
+        "New message from " + personas.personas[currentAvatar].nickname,
+        {
+          body: txt,
+          icon: personas.personas[currentAvatar].avatar,
+        }
+      );
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    } else {
+      return
+    }
+    console.log("run");
+  }
+
+  useEffect(() => {
+    sendNotification("Your'e in!")
+  }, [permissionStatuses])
 
   useEffect(() => {
     gsap.to(widthRef.current, {
@@ -49,6 +114,7 @@ export default function App() {
       <div className="avatar-card">
         <img
           style={{ width: 100, borderRadius: "50%" }}
+          // className={isNSFWEnabled && persona.personas[currentAvatar].nsfw_backstory.length > 0 ? "nsfw-border" : "water-ripple"}
           className={isNSFWEnabled ? "nsfw-border" : "water-ripple"}
           src={persona.personas[currentAvatar].avatar}
           width="100%"
@@ -72,7 +138,11 @@ export default function App() {
       </div>
       <div className="button-wrapper">
         <button
-        style={persona.personas[currentAvatar]?.nsfw_backstory ? {display: "block"} : {display: "none"}}
+          style={
+            persona.personas[currentAvatar]?.nsfw_backstory
+              ? { display: "block" }
+              : { display: "none" }
+          }
           onClick={handleChatType}
           className={
             isNSFWEnabled ? "chat-type-button-nsfw" : "chat-type-button"
@@ -86,8 +156,17 @@ export default function App() {
         </button>
       </div>
       <div style={{ width: "90%", margin: "35px auto" }}>
-        <small  className="memory-depth-label" htmlFor="">Memory Depth: </small>
-        <small className="memory-depth-label" htmlFor="">{totalTokens === 0 ? "Fresh" : `${((totalTokens / array[arrayState].context_window) * 100).toFixed(2)}%`}</small>
+        <small className="memory-depth-label" htmlFor="">
+          Memory Depth:{" "}
+        </small>
+        <small className="memory-depth-label" htmlFor="">
+          {totalTokens === 0
+            ? "Fresh"
+            : `${(
+                (totalTokens / array[arrayState].context_window) *
+                100
+              ).toFixed(2)}%`}
+        </small>
         <div ref={widthRef} className="progress-bar" />
       </div>
     </div>

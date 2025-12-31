@@ -558,3 +558,13 @@ code{
   font-family: 'JetBrains Mono', monospace;
   font-size: 14px
 }
+
+.current-persona-notification{
+  text-align: center;
+  font-family:  'JetBrains Mono', monospace;
+  color: #e8e8e897;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0
+}

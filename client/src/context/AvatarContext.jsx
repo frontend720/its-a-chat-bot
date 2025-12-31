@@ -5,6 +5,11 @@ const AvatarContext = createContext();
 function AvatarContextProvider({ children }) {
   const [prefError, setPrefError] = useState(null);
   const [settingsError, setSettingsError] = useState(null);
+  const [isHamburgerVisible, setIsHamburgerVisible] = useState(false);
+
+   function onHamburgerVisibleChange() {
+    setIsHamburgerVisible(true);
+  }
   const [currentAvatar, setCurrentAvatar] = useState(() => {
     try {
       const savedPreference = localStorage.getItem("avatar");
@@ -68,6 +73,8 @@ function AvatarContextProvider({ children }) {
         currentAvatar,
         settingsError,
         prefError,
+        isHamburgerVisible,
+        onHamburgerVisibleChange
       }}
     >
       {children}

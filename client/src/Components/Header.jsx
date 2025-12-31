@@ -6,14 +6,15 @@ import personas from "../persona.json";
 import "./Header.css";
 
 function Header({ onNewChatClick, onMenuToggle, tokens }) {
-  const { currentAvatar, isNSFWEnabled } = useContext(AvatarContext);
+  const {
+    currentAvatar,
+    isNSFWEnabled,
+    isHamburgerVisible,
+    onHamburgerVisibleChange,
+  } = useContext(AvatarContext);
   const { totalTokens, chat } = useContext(VeniceContext);
-  const [isHamburgerVisible, setIsHamburgerVisible] = useState(false);
-  const tokenRef = useRef(null);
 
-  function onHamburgerVisibleChange() {
-    setIsHamburgerVisible(true);
-  }
+  const tokenRef = useRef(null);
 
   //   const totalTokens = 21400;
   const el = tokenRef.current;

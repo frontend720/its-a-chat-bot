@@ -27,6 +27,7 @@ export default function ChatScreen({
   avatarBorder,
   image_ref,
   image_url,
+  avatar_url
 }) {
   const { currentAvatar } = useContext(AvatarContext);
 
@@ -39,7 +40,7 @@ export default function ChatScreen({
           </span>
           <img
             style={avatar}
-            src={personas.personas[currentAvatar].avatar}
+            src={avatar_url}
             alt=""
             className={avatarBorder}
           />
@@ -52,7 +53,6 @@ export default function ChatScreen({
                   table: Table,
                   th: TableHeader,
                   thead: Head
-                  // td: TableData,
                 }}
               >
                 {content}
