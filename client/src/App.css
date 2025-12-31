@@ -1,3 +1,18 @@
+:root {
+  /* This ensures your header doesn't actually hide behind the notch */
+  --safe-area-top: env(safe-area-inset-top);
+}
+
+.header {
+  /* Add the safe area height to your existing padding */
+  padding-top: calc(10px + var(--safe-area-top));
+  
+  /* Ensure the background color covers the top area */
+  background-color: #333; 
+  width: 100%;
+}
+
+
 *{
   margin: 0px; 
   padding: 0px;

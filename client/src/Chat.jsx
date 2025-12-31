@@ -202,7 +202,7 @@ export default function Chat() {
             .map((m) => m.url);
           return (
             <ChatScreen
-              key={index}
+              key={msg.timestamp}
               className={`message-container ${
                 msg.role === "user" ? "user-style" : "ai-style"
               } glass-card`}

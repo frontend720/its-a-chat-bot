@@ -22,7 +22,6 @@ function VeniceProvider({ children }) {
     baseURL: "https://api.x.ai/v1",
   });
   //Providers start
-  const { array, arrayState } = useContext(Provider);
   const { currentAvatar, isNSFWEnabled } = useContext(AvatarContext);
 
   //Providers end
@@ -37,8 +36,7 @@ function VeniceProvider({ children }) {
     : personas.personas[currentAvatar].nsfw_system_prompt;
 
   //State start
-  const [response, setResponse] = useState({});
-  const [video, setVideo] = useState(() => {
+  const [video, ________] = useState(() => {
     try {
       const savedVideoUrl = localStorage.getItem("video");
       return savedVideoUrl ? JSON.parse(savedVideoUrl) : null;
@@ -50,7 +48,7 @@ function VeniceProvider({ children }) {
   const [prompt, setPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [url, setUrl] = useState(null);
-  const [isImageLoading, setIsImageLoading] = useState(true);
+  const [isImageLoading, _________________] = useState(true);
   const [tokenCount, setTokenCount] = useState(0);
 
   const [totalTokens, setTotalTokens] = useState(() => {
@@ -66,6 +64,8 @@ function VeniceProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("token_count", JSON.stringify(totalTokens));
   }, [totalTokens]);
+
+  console.log(totalTokens);
 
   const [chat_prompt, setChat_prompt] = useState("");
 
@@ -87,16 +87,9 @@ function VeniceProvider({ children }) {
     }
   }, [chat]);
 
-  function pushNewChat(e) {
-    e.preventDefault();
-    setChats((prev) => [...prev, ...chat]);
-  }
-
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
   const [toggleImageVideo, setToggleImageVideo] = useState(true);
   const [isChatLoading, setIsChatLoading] = useState(false);
-  const [moderationError, setModerationError] = useState(null);
-  const [imagePrompt, setImagePrompt] = useState(null);
   function onImageVisibleChage() {
     setToggleImageVideo((prev) => !prev);
   }
@@ -137,119 +130,11 @@ function VeniceProvider({ children }) {
     createImageRef();
   }, [imageUrl]);
 
-  function createQue(e) {
-    e.preventDefault();
-    const options = {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_VENICE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: array[1].model,
-        prompt: prompt + ". " + technicalDirectives.directions,
-        duration: "10s",
-        image_url: url,
-        negative_prompt:
-          "low resolution, error, worst quality, low quality, defects",
-
-        resolution: "720p",
-      }),
-    };
-
-    fetch("https://api.venice.ai/api/v1/video/queue", options)
-      .then((res) => res.json())
-      .then((res) => setResponse(res))
-      .catch((err) => console.error(err));
-    setIsImageLoading(false);
-  }
-
-  function onChatPromptChange(e) {
-    setChat_prompt(e.target.value);
-  }
-
   useEffect(() => {
     setTotalTokens((prev) => prev + tokenCount);
   }, [tokenCount]);
 
   const [isVideoGenerating, setIsVideoGenerating] = useState(false);
-
-  async function retrieveVideo() {
-    const options = {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_VENICE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: array[1].model,
-        queue_id: response?.queue_id,
-        delete_media_on_completion: false,
-      }),
-    };
-
-    try {
-      let res = await fetch(
-        "https://api.venice.ai/api/v1/video/retrieve",
-        options
-      );
-
-      // Check if the response is actually a video file
-      const contentType = res.headers.get("content-type");
-
-      if (contentType && contentType.includes("video")) {
-        const videoBlob = await res.blob();
-        const videoFilRef = ref(storage, `chat_videos/${uuidv4()}.mp4`);
-        try {
-          const snapshot = await uploadBytes(videoFilRef, videoBlob);
-          const permanentUrl = await getDownloadURL(snapshot.ref);
-          setVideo(permanentUrl);
-          localStorage.setItem("video", JSON.stringify(permanentUrl));
-          const assistantVideoResponse = {
-            role: "assistant",
-            timestamp: Date(),
-            content: [
-              {
-                type: "video_clip",
-                video_url: {
-                  url: permanentUrl,
-                },
-              },
-            ],
-          };
-          setChat((prev) => [...prev, assistantVideoResponse]);
-          setIsVideoGenerating(false);
-          setIsImageLoading(true);
-          setToggleImageVideo(false);
-        } catch (error) {
-          console.log("Firebase vidoe upload failed" + error);
-        }
-        onImageVisibleChage();
-        return;
-      }
-
-      let data = await res.json();
-
-      if (data.status === "PROCESSING") {
-        console.log("Still processing... retrying in 5s");
-        setIsVideoGenerating(true);
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        return retrieveVideo();
-      }
-
-      if (data.status === "COMPLETED") {
-        if (data.video_url) {
-          console.log("Video URL from JSON:", data.video_url);
-        } else {
-          console.log(
-            "Status completed, but no URL. File might be in the body."
-          );
-        }
-      }
-    } catch (err) {
-      console.error("Error retrieving video:", err);
-    }
-  }
 
   useEffect(() => {
     if (video) {
@@ -265,12 +150,18 @@ function VeniceProvider({ children }) {
    } 
    Instructions: ${technicalDirectives.instructions} 
    Backstory: ${backstories} 
-   **QUIRKS** (MANDATORY: Weave 1-2 per response to blend SFW backstory/job/hobbies with NSFW traits organically): ${
+   **QUIRKS** (MANDATORY: Weave 1or 2 imto the chat to blend SFW backstory/job/hobbies with NSFW traits organically): ${
      personas.personas[currentAvatar].quirks
    }
    Your character traits are as follow: ${traits.join(
      ", "
-   )}. You speak with a ${personas.personas[currentAvatar].speech_style}`;
+   )}. You speak with a natural ${
+    personas.personas[currentAvatar].speech_style
+  }. use slang sparingly, don't lean into stereotypes. You are currently in ${
+    isNSFWEnabled
+      ? "SFW Mode. Strictly no sexual innuendo or sexually suggestive responses allowed unless initiated by user, keep it PG-13"
+      : "NSFW mode"
+  }`;
 
   async function newRequest(e) {
     e.preventDefault();
@@ -305,13 +196,12 @@ function VeniceProvider({ children }) {
         ...sanitizedHistory,
         userMessage,
       ],
-
     });
     try {
       if (!request.choices || !request.choices[0]) {
         console.error("API Error Response:", request);
         setIsChatLoading(false);
-        return; // Stop the function from crashing
+        return;
       }
       const assistantMessage = {
         role: "assistant",
@@ -331,7 +221,7 @@ function VeniceProvider({ children }) {
     "lowres, bad anatomy, bad hands, text, error, missing fingers, cropped, worst quality, low quality, watermark, blurry";
 
   async function generateImage(e) {
-    setChat_prompt("")
+    setChat_prompt("");
     e.preventDefault();
     setIsVideoGenerating(true);
     const userMessage = {
@@ -383,6 +273,8 @@ function VeniceProvider({ children }) {
       setChat((prev) => [...prev, userMessage, assistantMessage]);
       console.log(response.data);
       setIsVideoGenerating(false);
+      setTotalTokens((prev) => prev + 1);
+      setTokenCount((prev) => prev + 1);
     } catch (error) {
       console.error("Error details:", error.response?.data || error.message);
     }
@@ -398,34 +290,32 @@ function VeniceProvider({ children }) {
   }
   // Handle Changes end
 
-  useEffect(() => {
-    retrieveVideo();
-  }, [response]);
+  function onChatPromptChange(e) {
+    setChat_prompt(e.target.value);
+  }
 
   return (
     <VeniceContext.Provider
       value={{
-        createQue,
-        retrieveVideo,
+        onChatPromptChange,
         onPromptChange,
+        createImageRef,
+        onImageChange,
+        onImageVisibleChage,
         video,
         prompt,
         imageUrl,
-        onImageChange,
-        createImageRef,
         url,
         isImageLoading,
         isWidgetVisible,
         toggleImageVideo,
-        onImageVisibleChage,
         chat_prompt,
-        onChatPromptChange,
         chat,
         isChatLoading,
         totalTokens,
+        isVideoGenerating,
         setChat,
         setTotalTokens,
-        isVideoGenerating,
         newRequest,
         generateImage,
       }}

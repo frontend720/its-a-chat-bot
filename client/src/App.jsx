@@ -10,6 +10,19 @@ import OpenAI from "openai";
 function App() {
   const { isAvatarScreenVisible } = useContext(Provider);
 
+    function notification() {
+    Notification.requestPermission().then((result) => {
+      if (result === "denied") {
+        alert("Accept push notifications");
+      } else {
+        new Notification("New message", {
+          body: "This is the message body",
+        });
+      }
+    });
+  }
+
+
   return (
     <div className="App">
       {!isAvatarScreenVisible ? <Chat /> : <AvatarSelectionScreen />}

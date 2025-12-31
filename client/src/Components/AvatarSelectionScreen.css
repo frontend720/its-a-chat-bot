@@ -36,7 +36,7 @@
   flex-direction: column;
   width: 300px;
   align-items: center;
-  padding: 24px 6px;
+  padding: 16px 6px;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -50,7 +50,7 @@
   overflow: hidden;
   margin: 75px auto;
   color: #e8e8e8;
-  min-height: 425px;
+  min-height: 465px;
 }
 
 .avatar-card::before {

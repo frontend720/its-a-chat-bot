@@ -22,12 +22,14 @@ function Header({ onNewChatClick, onMenuToggle, tokens }) {
     if (el) {
       let statusColor;
 
-      if (totalTokens < 15000) {
-        statusColor = "#4ade80"; // Vibrant Green
-      } else if (totalTokens < 22000) {
-        statusColor = "#facc15"; // Warning Yellow
-      } else if (totalTokens < 25001) {
-        statusColor = "#ef4444"; // Danger Red
+      const maxLimit = 2000000;
+
+      if (totalTokens < maxLimit * 0.8) {
+        statusColor = "#4ade80"; // Green
+      } else if (totalTokens < maxLimit * 0.95) {
+        statusColor = "#facc15"; // Yellow
+      } else {
+        statusColor = "#ef4444"; // Red
       }
 
       el.style.color = statusColor;
@@ -56,18 +58,26 @@ function Header({ onNewChatClick, onMenuToggle, tokens }) {
           }`}
         ></i>
       </div>
-      <label
-        ref={tokenRef}
-        className="token_counter"
-      >
+      <label ref={tokenRef} className="token_counter">
         {isNSFWEnabled ? (
-          <i style={{ marginRight: 10 , color: "orange"}} className="fa-solid fa-fire"></i>
+          <i
+            style={{ marginRight: 10, color: "orange" }}
+            className="fa-solid fa-fire"
+          ></i>
         ) : (
           ""
         )}
         {personas.personas[currentAvatar].nickname}
       </label>
-      <div className="new-chat-container" style={chat.length === 0 ? { opacity: 0, pointerEvents: "none" } : { opacity: 1 }} onClick={onNewChatClick}>
+      <div
+        className="new-chat-container"
+        style={
+          chat.length === 0
+            ? { opacity: 0, pointerEvents: "none" }
+            : { opacity: 1 }
+        }
+        onClick={onNewChatClick}
+      >
         <i
           style={{ fontSize: 16, marginRight: 8 }}
           className="fa-solid fa-pen-to-square"

@@ -72,6 +72,7 @@ export default function App() {
       </div>
       <div className="button-wrapper">
         <button
+        style={persona.personas[currentAvatar]?.nsfw_backstory ? {display: "block"} : {display: "none"}}
           onClick={handleChatType}
           className={
             isNSFWEnabled ? "chat-type-button-nsfw" : "chat-type-button"

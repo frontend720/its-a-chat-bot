@@ -5,7 +5,13 @@ import personas from "../persona.json";
 import "./ChatScreen.css";
 import { AvatarContext } from "../context/AvatarContext";
 import { Provider } from "../context/Provider";
-import { ChatSegment } from "../Styles/ChatComponentStyles";
+import {
+  ChatSegment,
+  Head,
+  Table,
+  TableData,
+  TableHeader,
+} from "../Styles/ChatComponentStyles";
 
 export default function ChatScreen({
   key,
@@ -20,10 +26,9 @@ export default function ChatScreen({
   timestampRole,
   avatarBorder,
   image_ref,
-  image_url
+  image_url,
 }) {
   const { currentAvatar } = useContext(AvatarContext);
-  
 
   return (
     <>
@@ -40,19 +45,36 @@ export default function ChatScreen({
           />
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div className="markdown-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                p: ChatSegment
-              }}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ChatSegment,
+                  table: Table,
+                  th: TableHeader,
+                  thead: Head
+                  // td: TableData,
+                }}
+              >
                 {content}
               </ReactMarkdown>
             </div>
-            <img style={{borderRadius: 25}} src={image_ref} width="100%" alt="" />
+            <img
+              style={{ borderRadius: 25 }}
+              src={image_ref}
+              width="100%"
+              alt=""
+            />
             {video && video.length > 0 && (
               <video controls src={video[0]} className="src-video">
                 Your browser does not support the video tag.
               </video>
             )}
-            <img style={{borderRadius: 15}} src={image_url} width="100%" alt="" />
+            <img
+              style={{ borderRadius: 15 }}
+              src={image_url}
+              width="100%"
+              alt=""
+            />
             <small style={timestampRole} className="timestamp">
               {timestamp}
             </small>
