@@ -17,95 +17,41 @@ export default function App() {
     currentAvatar,
   } = useContext(AvatarContext);
 
-  const { onIsAvatarScreenVisible, array, arrayState } = useContext(Provider);
-
+ const { onIsAvatarScreenVisible, array, arrayState } = useContext(Provider);
   const { totalTokens } = useContext(VeniceContext);
 
   const widthRef = useRef(null);
-  const contextWidth = (totalTokens / array[arrayState].context_window) * 100;
+
+  const currentModel = array && array[arrayState] ? array[arrayState] : { context_window: 1 };
+  const contextWidth = (totalTokens / currentModel.context_window) * 100;
 
   useEffect(() => {
-    if (contextWidth <= 50) {
-      widthRef.current.style.background = `#17b978`;
-    } else if (contextWidth > 50 && contextWidth <= 75) {
-      widthRef.current.style.background = "#ff9f68";
-    } else if (contextWidth > 75) {
-      widthRef.current.style.background = "#f85959";
-    }
-  }, [totalTokens]);
-
-  const [permissionStatus, setPermissionStatus] = useState(
-    Notification.permission
-  );
-
-  // 1. Request Permission (Must be a button click)
-  function askPermission() {
-    if (!("Notification" in window)) {
-      alert("This browser does not support desktop notifications");
-      return;
-    }
-
-    Notification.requestPermission().then((permission) => {
-      setPermissionStatus(permission);
-      if (permission === "granted") {
-        console.log("Permission granted!");
-      } else {
-        console.log("Permission denied :(");
+    if (widthRef.current) {
+      if (contextWidth <= 50) {
+        widthRef.current.style.background = `#17b978`;
+      } else if (contextWidth > 50 && contextWidth <= 75) {
+        widthRef.current.style.background = "#ff9f68";
+      } else if (contextWidth > 75) {
+        widthRef.current.style.background = "#f85959";
       }
-    });
-  }
-
-  const [permissionStatuses, setPermissionStatuses] = useState("denied")
-
-  useEffect(() => {
-    if (!("Notification" in window)) {
-      alert("This browser does not support desktop notifications");
-      return;
     }
+  }, [totalTokens, contextWidth]);
 
-    Notification.requestPermission().then((permission) => {
-      setPermissionStatus(permission);
-      if (permission === "granted") {
-        setPermissionStatuses("Permission granted!");
-      } else {
-        console.log("Permission denied :(");
-      }
-    });
-  }, []);
-
-  // 2. Fire Notification (Must be granted first)
-  function sendNotification(txt) {
-    if (permissionStatus === "granted") {
-      const notification = new Notification(
-        "New message from " + personas.personas[currentAvatar].nickname,
-        {
-          body: txt,
-          icon: personas.personas[currentAvatar].avatar,
-        }
-      );
-
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-    } else {
-      return
+  useEffect(() => {
+    if (widthRef.current) {
+      gsap.to(widthRef.current, {
+        padding: 3,
+        borderRadius: 25,
+        width: `${contextWidth}%`,
+        duration: 2,
+      });
     }
-    console.log("run");
+  }, [totalTokens, onIsAvatarScreenVisible, contextWidth]);
+
+ 
+  if (!personas || !personas.personas || !personas.personas[currentAvatar]) {
+      return <div className="avatar-card">Loading...</div>;
   }
-
-  useEffect(() => {
-    sendNotification("Your'e in!")
-  }, [permissionStatuses])
-
-  useEffect(() => {
-    gsap.to(widthRef.current, {
-      padding: 3,
-      borderRadius: 25,
-      width: `${contextWidth}%`,
-      duration: 2,
-    });
-  }, [totalTokens, onIsAvatarScreenVisible]);
   return (
     <div className="">
       <button onClick={onIsAvatarScreenVisible} className="close-screen">
