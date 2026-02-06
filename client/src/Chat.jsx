@@ -260,7 +260,7 @@ export default function Chat() {
           );
         })}
         <div />
-        <small ref={personaNotifier} className="current-persona-notification">
+        <small style={chat.length === 0 ? {display: "none"} : {display: ""}} ref={personaNotifier} className="current-persona-notification">
           Current persona {personas.personas[currentAvatar].nickname}
         </small>
         <>
